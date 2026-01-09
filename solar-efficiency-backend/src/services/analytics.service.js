@@ -1,0 +1,3 @@
+exports.getAnalytics = async () => {
+  return {};
+};

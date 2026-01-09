@@ -1,0 +1,103 @@
+/**
+ * Utility functions for solar analysis data transformations
+ */
+
+/**
+ * Convert monthly bill to estimated monthly kWh consumption
+ * @param {number} monthlyBill - Monthly electricity bill in INR
+ * @param {number} tariff - Cost per kWh in INR
+ * @returns {number} Estimated monthly kWh
+ */
+exports.billToKwh = (monthlyBill, tariff) => {
+  return parseFloat((monthlyBill / tariff).toFixed(2));
+};
+
+/**
+ * Normalize orientation to single character
+ * @param {string} orientation - Full orientation name
+ * @returns {string} Single character (N, S, E, W)
+ */
+exports.normalizeOrientation = (orientation) => {
+  const map = {
+    'north': 'N',
+    'south': 'S',
+    'east': 'E',
+    'west': 'W'
+  };
+  return map[orientation.toLowerCase()] || 'S';
+};
+
+/**
+ * Normalize shading level to numeric value
+ * @param {string} shading - Shading level
+ * @returns {number} 0 (none), 1 (partial), 2 (full)
+ */
+exports.normalizeShadingToNumeric = (shading) => {
+  const map = {
+    'none': 0,
+    'partial': 1,
+    'full': 2
+  };
+  return map[shading.toLowerCase()] || 0;
+};
+
+/**
+ * Format data for ML model consumption
+ * @param {object} inputData - Raw input from user
+ * @returns {object} Clean, minimal payload for ML
+ */
+exports.formatForML = (inputData) => {
+  const { location, roof, energy, system } = inputData;
+  
+  const monthlyKwh = exports.billToKwh(energy.monthly_bill, energy.tariff);
+  
+  return {
+    lat: parseFloat(location.latitude.toFixed(2)),
+    lon: parseFloat(location.longitude.toFixed(2)),
+    roof_area: parseFloat(roof.area),
+    tilt: parseFloat(roof.tilt),
+    orientation: exports.normalizeOrientation(roof.orientation),
+    shading: roof.shading, // Keep as string for ML
+    monthly_kwh: monthlyKwh,
+    panel_age: parseFloat(system.panel_age_years),
+    days_since_cleaning: parseFloat(system.last_cleaned_days_ago)
+  };
+};
+
+/**
+ * Calculate payback period
+ * @param {number} systemCost - Estimated system cost (₹700 per Watt in India)
+ * @param {number} annualSavings - Annual savings in INR
+ * @returns {number} Years to payback
+ */
+exports.calculatePayback = (systemSizeKw, annualSavings) => {
+  const costPerWatt = 700; // INR per Watt (industry avg in India)
+  const systemCost = systemSizeKw * 1000 * costPerWatt;
+  return parseFloat((systemCost / annualSavings).toFixed(1));
+};
+
+/**
+ * Identify major issues from loss breakdown
+ * @param {object} lossBreakdown - ML loss breakdown
+ * @returns {array} Array of major issues (>5% loss)
+ */
+exports.identifyMajorIssues = (lossBreakdown) => {
+  const issues = [];
+  for (const [key, value] of Object.entries(lossBreakdown)) {
+    if (value > 5) {
+      issues.push(key.charAt(0).toUpperCase() + key.slice(1));
+    }
+  }
+  return issues;
+};
+
+/**
+ * Determine maintenance priority
+ * @param {number} efficiencyLoss - Total efficiency loss percentage
+ * @returns {string} Priority level (High, Medium, Low)
+ */
+exports.getMaintenancePriority = (efficiencyLoss) => {
+  if (efficiencyLoss >= 15) return 'High';
+  if (efficiencyLoss >= 8) return 'Medium';
+  return 'Low';
+};

@@ -1,0 +1,34 @@
+{
+  "name": "solar-efficiency-backend",
+  "version": "1.0.0",
+  "description": "Backend for Solar Panel Efficiency Optimizer",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "seed": "node scripts/seedDatabase.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^7.0.0",
+    "morgan": "^1.10.0",
+    "nodemailer": "^7.0.12",
+    "validator": "^13.15.26",
+    "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "nodemon": "^2.0.20",
+    "supertest": "^6.3.3"
+  }
+}
