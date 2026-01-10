@@ -24,7 +24,12 @@ app.use(limiter); // Global rate limiting
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/solar', require('./routes/solar.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
-// app.use('/api/panels', require('./routes/panel.routes'));
+app.use('/api/sensor', require('./routes/sensor.routes'));
+app.use('/api/alert', require('./routes/alert.routes'));
+app.use('/api/maintenance', require('./routes/maintenance.routes'));
+app.use('/api/panel', require('./routes/panel.routes'));
+app.use('/api/panel-request', require('./routes/panelRequest.routes'));
+app.use('/api/trends', require('./routes/trends.routes'));
 
 // Error Handler
 app.use(errorHandler);

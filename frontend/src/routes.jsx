@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import SolarAnalysis from './pages/SolarAnalysis';
 import AdminDashboard from './pages/AdminDashboard';
+import TrendsAnalysis from './pages/TrendsAnalysis';
 
 const AppRoutes = () => {
   return (
@@ -26,6 +27,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/analyze" element={<SolarAnalysis />} />
+        <Route path="/trends" element={<TrendsAnalysis />} />
       </Route>
 
       {/* Admin Only Routes */}

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import UserTable from '../components/admin/UserTable';
 import RequestTable from '../components/admin/RequestTable';
+import PanelRequestsTable from '../components/admin/PanelRequestsTable';
+import TrendsAnalysis from './TrendsAnalysis';
 import { getAllUsers, getAllRequests, updateUserRole, deleteUser } from '../api/admin.api';
 
 const AdminDashboard = () => {
@@ -110,6 +112,22 @@ const AdminDashboard = () => {
         <div style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
           {title}
         </div>
+        <button
+          onClick={() => setActiveTab('trends')}
+          style={{
+            padding: '12px 24px',
+            background: activeTab === 'trends' ? '#3498db' : 'transparent',
+            color: activeTab === 'trends' ? 'white' : '#7f8c8d',
+            border: 'none',
+            borderBottom: activeTab === 'trends' ? '3px solid #2980b9' : 'none',
+            cursor: 'pointer',
+            fontSize: '1rem',
+            fontWeight: '600',
+            transition: 'all 0.2s'
+          }}
+        >
+          📊 Trends
+        </button>
       </div>
     </div>
   );
@@ -192,6 +210,22 @@ const AdminDashboard = () => {
         >
           📋 Analysis Requests
         </button>
+        <button
+          onClick={() => setActiveTab('panels')}
+          style={{
+            padding: '12px 24px',
+            background: activeTab === 'panels' ? '#3498db' : 'transparent',
+            color: activeTab === 'panels' ? 'white' : '#7f8c8d',
+            border: 'none',
+            borderBottom: activeTab === 'panels' ? '3px solid #2980b9' : 'none',
+            cursor: 'pointer',
+            fontSize: '1rem',
+            fontWeight: '600',
+            transition: 'all 0.2s'
+          }}
+        >
+          🔋 Panel Requests
+        </button>
       </div>
 
       {/* Content */}
@@ -215,11 +249,15 @@ const AdminDashboard = () => {
           onDelete={handleDeleteUser}
           loading={loadingUsers}
         />
-      ) : (
+      ) : activeTab === 'requests' ? (
         <RequestTable 
           requests={requests}
           loading={loadingRequests}
         />
+      ) : activeTab === 'panels' ? (
+        <PanelRequestsTable />
+      ) : (
+        <TrendsAnalysis />
       )}
 
       {/* Info Box */}
