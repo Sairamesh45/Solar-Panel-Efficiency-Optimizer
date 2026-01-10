@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../api/axiosInstance';
-
+// ...existing code...
 const PanelRequestsTable = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
+  const [installers, setInstallers] = useState([]);
 
   useEffect(() => {
     fetchRequests();
+    fetchInstallers();
   }, []);
 
   const fetchRequests = async () => {
@@ -21,7 +23,12 @@ const PanelRequestsTable = () => {
     }
   };
 
-  const handleApprove = async (request) => {
+  const fetchInstallers = async () => {
+    const res = await axiosInstance.get('/admin/users?role=Installer');
+    setInstallers(res.data.data || []);
+  };
+
+  const handleApprove = async (request, installerId) => {
     const isDeleteRequest = request.notes?.toLowerCase().includes('delete panel');
     try {
       if (isDeleteRequest) {
@@ -33,26 +40,51 @@ const PanelRequestsTable = () => {
         }
         await axiosInstance.post('/panel-request/status', {
           id: request._id,
-          status: 'approved'
+          status: 'approved',
+          message: 'Admin approved deletion request and panel deleted'
         });
         alert('Panel deleted and request approved!');
       } else {
         // Create panel from request
-        await axiosInstance.post('/panel', {
+        const panelRes = await axiosInstance.post('/panel', {
           userId: request.userId,
           name: request.name,
           location: request.location,
           wattage: request.wattage,
           brand: request.brand
         });
-        await axiosInstance.post('/panel-request/status', {
-          id: request._id,
-          status: 'approved'
-        });
-        alert('Panel created and request approved!');
+        
+        const createdPanelId = panelRes.data.data._id;
+        
+        // Assign installer if selected
+        if (installerId) {
+          await axiosInstance.post('/panel/assign-installer', {
+            panelId: createdPanelId,
+            installerId
+          });
+          
+          // Update request with timeline: approved + installer assigned
+          await axiosInstance.post('/panel-request/status', {
+            id: request._id,
+            status: 'approved',
+            installerId: installerId,
+            panelId: createdPanelId,
+            message: 'Admin approved request, panel created, and installer assigned'
+          });
+        } else {
+          // Update request with timeline: approved only
+          await axiosInstance.post('/panel-request/status', {
+            id: request._id,
+            status: 'approved',
+            panelId: createdPanelId,
+            message: 'Admin approved request and panel created'
+          });
+        }
+        alert('Panel created, installer assigned, and request approved!');
       }
       fetchRequests();
     } catch (err) {
+      console.error(err);
       alert('Failed to approve request');
     }
   };
@@ -244,31 +276,43 @@ const PanelRequestsTable = () => {
                           ✓ Approve & Delete Panel
                         </button>
                       ) : (
-                        <button
-                          onClick={() => handleApprove(req)}
-                          style={{
-                            padding: '12px 20px',
-                            background: '#27ae60',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            fontSize: '0.95rem',
-                            transition: 'all 0.3s ease',
-                            boxShadow: '0 2px 8px rgba(39, 174, 96, 0.3)'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#229954';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(39, 174, 96, 0.5)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#27ae60';
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(39, 174, 96, 0.3)';
-                          }}
-                        >
-                          ✓ Approve & Create Panel
-                        </button>
+                        <div>
+                          <label style={{ fontSize: '0.95rem', marginBottom: 6 }}>Assign Installer:</label>
+                          <select id={`installer-select-${req._id}`} style={{ marginBottom: 8, width: '100%' }}>
+                            <option value="">Select Installer (optional)</option>
+                            {installers.filter(inst => inst.role === 'Installer').map(inst => (
+                              <option key={inst._id} value={inst._id}>{inst.name}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => {
+                              const select = document.getElementById(`installer-select-${req._id}`);
+                              handleApprove(req, select.value);
+                            }}
+                            style={{
+                              padding: '12px 20px',
+                              background: '#27ae60',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              fontSize: '0.95rem',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 8px rgba(39, 174, 96, 0.3)'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#229954';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(39, 174, 96, 0.5)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#27ae60';
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(39, 174, 96, 0.3)';
+                            }}
+                          >
+                            ✓ Approve & Create Panel
+                          </button>
+                        </div>
                       )}
                       <button
                         onClick={() => handleReject(req._id)}

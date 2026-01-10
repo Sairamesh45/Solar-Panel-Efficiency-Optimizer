@@ -10,7 +10,8 @@ const SolarPanelSchema = new mongoose.Schema({
   specifications: {
     wattage: Number,
     brand: String
-  }
+  },
+  installerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('SolarPanel', SolarPanelSchema);

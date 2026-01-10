@@ -7,7 +7,15 @@ const PanelRequestSchema = new mongoose.Schema({
   wattage: String,
   brand: String,
   notes: String,
-  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'approved', 'rejected', 'completed'], default: 'pending' },
+  installerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  panelId: { type: mongoose.Schema.Types.ObjectId, ref: 'SolarPanel' },
+  timeline: [{
+    status: String,
+    message: String,
+    timestamp: { type: Date, default: Date.now },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 

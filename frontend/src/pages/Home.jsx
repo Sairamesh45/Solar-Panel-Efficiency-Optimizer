@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import Navbar from '../components/common/Navbar';
 
 const Home = () => {
   const { user } = useAuth();
@@ -11,6 +12,7 @@ const Home = () => {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       color: 'white'
     }}>
+      <Navbar />
       {/* Hero Section */}
       <div style={{
         maxWidth: '1200px',

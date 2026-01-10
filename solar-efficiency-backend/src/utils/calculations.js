@@ -1,4 +1,4 @@
 exports.calculateEfficiency = (inputParams) => {
-  // TODO: implement calculation logic
+  // Placeholder for efficiency calculation logic
   return 0;
 };

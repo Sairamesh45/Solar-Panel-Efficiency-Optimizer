@@ -8,6 +8,7 @@ const RequestPanelModal = ({ open, onClose, onSubmit }) => {
     brand: '',
     notes: ''
   });
+  const [submitting, setSubmitting] = useState(false);
 
   if (!open) return null;
 
@@ -15,9 +16,14 @@ const RequestPanelModal = ({ open, onClose, onSubmit }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(form);
+    if (submitting) return; // Prevent double submission
+    
+    setSubmitting(true);
+    await onSubmit(form);
+    setForm({ name: '', location: '', wattage: '', brand: '', notes: '' });
+    setSubmitting(false);
   };
 
   return (
@@ -50,8 +56,21 @@ const RequestPanelModal = ({ open, onClose, onSubmit }) => {
           </label>
         </div>
         <div style={{display:'flex', gap:12, justifyContent:'flex-end'}}>
-          <button type="button" onClick={onClose} style={{padding:'8px 16px'}}>Cancel</button>
-          <button type="submit" style={{padding:'8px 16px', background:'#3498db', color:'#fff', border:'none', borderRadius:6}}>Request</button>
+          <button type="button" onClick={onClose} style={{padding:'8px 16px'}} disabled={submitting}>Cancel</button>
+          <button 
+            type="submit" 
+            disabled={submitting}
+            style={{
+              padding:'8px 16px', 
+              background: submitting ? '#95a5a6' : '#3498db', 
+              color:'#fff', 
+              border:'none', 
+              borderRadius:6,
+              cursor: submitting ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {submitting ? 'Requesting...' : 'Request'}
+          </button>
         </div>
       </form>
     </div>

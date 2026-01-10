@@ -8,6 +8,16 @@ const MaintenanceSchema = new mongoose.Schema({
   completed: { type: Boolean, default: false },
   requested: { type: Boolean, default: false }, // true if requested by customer
   handled: { type: Boolean, default: false }, // true if installer has accepted/handled
+  installerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // assigned installer
+  status: { type: String, enum: ['pending', 'in_progress', 'completed'], default: 'pending' },
+  statusTimeline: [
+    {
+      status: { type: String, enum: ['pending', 'in_progress', 'completed'] },
+      timestamp: { type: Date, default: Date.now },
+      notes: String
+    }
+  ],
+  photos: [String], // URLs or file paths to uploaded photos
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -40,10 +40,12 @@ const MyPanels = ({ userId }) => {
   if (!panels.length) return <div>No panels assigned yet. Request a new panel to get started!</div>;
 
   return (
-    <div style={{ marginTop: 30 }}>
-      <h2>My Solar Panels</h2>
+    <div>
       {requestMsg && <div style={{color:'#2c3e50',background:'#e3f2fd',padding:'8px 16px',borderRadius:6,marginBottom:10}}>{requestMsg}</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+      {!panels.length ? (
+        <div>No panels assigned yet. Request a new panel to get started!</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
         {panels.map(panel => (
           <div key={panel._id} style={{ background: '#fff', padding: 20, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
             <h3 style={{ margin: '0 0 10px 0', color: '#2c3e50' }}>{panel.name}</h3>
@@ -55,6 +57,7 @@ const MyPanels = ({ userId }) => {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 };
