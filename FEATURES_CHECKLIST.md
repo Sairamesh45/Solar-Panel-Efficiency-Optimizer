@@ -43,8 +43,13 @@
 - [x] Gradient backgrounds
 - [x] Interactive hover effects
 
-### Dashboard
-- [x] Analysis history display
+
+### Dashboard & Role-based Dashboards
+- [x] Role-based dashboards (Customer, Installer, Admin)
+- [x] Customer Dashboard: Analysis history display, sensor trends, historical data visualization (charts)
+- [x] Customer Dashboard: CSV export for sensor data and analysis history
+- [x] Installer Dashboard: Real data (panels, sensor health, maintenance schedule)
+- [x] Admin Dashboard: Panel Requests UI redesign (card-based, stats, filtering)
 - [x] Filter by all analyses
 - [x] Filter by recent (last 5)
 - [x] Filter by high efficiency (>80)
@@ -164,22 +169,12 @@
 - [x] CORS configuration
 - [x] Security headers (Helmet)
 
-### API Endpoints
-- [x] POST /api/auth/register
-- [x] POST /api/auth/login
-- [x] POST /api/auth/logout
-- [x] GET /api/auth/me
-- [x] POST /api/auth/forgot-password
-- [x] POST /api/auth/reset-password/:token
-- [x] POST /api/solar/analyze
-- [x] GET /api/solar/history
-- [x] GET /api/solar/:id
-- [x] DELETE /api/solar/:id
-- [x] GET /api/admin/users
-- [x] GET /api/admin/requests
-- [x] GET /api/admin/stats
-- [x] PUT /api/admin/users/:userId/role
-- [x] DELETE /api/admin/users/:userId
+- [x] POST /api/panel-request (panel requests)
+- [x] GET /api/panel (with userId filter)
+- [x] GET /api/maintenance/pending
+- [x] POST /api/maintenance/schedule
+- [x] POST /api/maintenance/handle
+- [x] GET /api/maintenance/history
 
 ### Security
 - [x] JWT token authentication
@@ -270,12 +265,20 @@
 - [ ] Email service (SMTP)
 - [ ] Image upload for panels
 - [ ] PDF report generation
-- [ ] CSV/Excel export
 - [ ] Weather API integration
 - [ ] Real-time notifications (WebSocket)
 - [ ] Multi-language support
 - [ ] Dark mode
 - [ ] Mobile app
+
+### Partially Complete / In Progress
+- [ ] Historical data visualization for Installer/Admin dashboards
+- [ ] PDF export (CSV export complete)
+
+### Bug Fixes (Recent)
+- [x] Fixed panel request 404 error (API routing)
+- [x] Fixed maintenance request (userId passing, panel filtering)
+- [x] Fixed module export error (dev server/browser cache issue)
 
 ## 📊 Statistics
 

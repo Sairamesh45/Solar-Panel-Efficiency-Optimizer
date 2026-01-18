@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const connectDB = require('../src/config/db');
 
-// TODO: Import models and seed data
+// Import models and seed data as needed
 
 const seed = async () => {
   // await connectDB();

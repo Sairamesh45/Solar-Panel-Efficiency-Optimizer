@@ -22,7 +22,7 @@ exports.performAnalysis = async (inputData) => {
   // 1. Format data for ML model
   const mlPayload = formatForML(inputData);
   
-  // 2. Call ML model (mocked for hackathon, replace with actual API call)
+  // 2. Call ML model (currently mocked, replace with actual endpoint when ready)
   const mlResponse = await callMLModel(mlPayload);
   
   // 3. Transform ML response to judge-friendly format

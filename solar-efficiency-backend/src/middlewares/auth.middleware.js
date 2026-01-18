@@ -60,12 +60,6 @@ exports.isAuthenticated = exports.protect;
 
 // Check if user is admin
 exports.isAdmin = (req, res, next) => {
-  console.log('=== isAdmin middleware ===');
-  console.log('req.user:', req.user);
-  console.log('req.user.role:', req.user?.role);
-  console.log('Role type:', typeof req.user?.role);
-  console.log('========================');
-  
   if (!req.user) {
     return errorResponse(res, 'Not authorized, user context missing', 401);
   }

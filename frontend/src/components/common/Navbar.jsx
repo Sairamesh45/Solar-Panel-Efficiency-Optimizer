@@ -1,28 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
-import { logout as apiLogout } from '../../api/auth.api';
 
 const Navbar = () => {
-  const { user, setUser } = useAuthContext();
+  const { user, logout } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
-    try {
-      await apiLogout();
-    } catch (err) {
-      console.error('Logout API failed', err);
-    } finally {
-      // Clear local state regardless of API call result
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setUser(null);
-      setMobileMenuOpen(false);
-      // Force navigation after state is cleared
-      window.location.href = '/?logout=true';
-    }
+    await logout();
+    setMobileMenuOpen(false);
+    navigate('/login');
   };
 
   const isActive = (path) => location.pathname === path;
@@ -106,6 +95,7 @@ const Navbar = () => {
             <>
               <NavLink to="/analyze">🔍 Analyze</NavLink>
               <NavLink to="/dashboard">📊 Dashboard</NavLink>
+              <NavLink to="/trends">📈 Trends</NavLink>
               {user.role === 'Admin' && <NavLink to="/admin">🛡️ Admin</NavLink>}
               
               <div style={{
@@ -238,6 +228,7 @@ const Navbar = () => {
               </div>
               <NavLink to="/analyze">🔍 Analyze</NavLink>
               <NavLink to="/dashboard">📊 Dashboard</NavLink>
+              <NavLink to="/trends">📈 Trends</NavLink>
               {user.role === 'Admin' && <NavLink to="/admin">🛡️ Admin Panel</NavLink>}
               <button 
                 onClick={handleLogout}

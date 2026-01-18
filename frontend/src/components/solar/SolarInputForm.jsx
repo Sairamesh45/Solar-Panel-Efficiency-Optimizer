@@ -1,6 +1,11 @@
+
 import React, { useState } from 'react';
+import { fetchLatLonFromLocation } from '../../utils/geocode';
+import { INDIAN_STATES, INDIAN_CITIES } from '../../utils/indianLocations';
 
 const SolarInputForm = ({ onSubmit, loading }) => {
+  // For city dropdown
+  const [customCity, setCustomCity] = useState('');
   const [formData, setFormData] = useState({
     location: { city: 'Mumbai', state: 'Maharashtra', latitude: 19.07, longitude: 72.87 },
     roof: { area: 50, type: 'flat', tilt: 15, orientation: 'south', shading: 'none' },
@@ -19,6 +24,31 @@ const SolarInputForm = ({ onSubmit, loading }) => {
     });
   };
 
+
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState('');
+
+  const handleGetCoordinates = async () => {
+    setGeoLoading(true);
+    setGeoError('');
+    try {
+      // Use only the city name for geocoding API (Open-Meteo works best with just city)
+      const coords = await fetchLatLonFromLocation(formData.location.city);
+      setFormData({
+        ...formData,
+        location: {
+          ...formData.location,
+          latitude: coords.latitude,
+          longitude: coords.longitude
+        }
+      });
+    } catch (err) {
+      setGeoError(err.message || 'Failed to fetch coordinates');
+    } finally {
+      setGeoLoading(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
@@ -33,8 +63,57 @@ const SolarInputForm = ({ onSubmit, loading }) => {
           <fieldset style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '5px' }}>
             <legend style={{ fontWeight: 'bold' }}>Location</legend>
             <div style={{ marginBottom: '10px' }}>
-              <label style={{ display: 'block' }}>City</label>
-              <input type="text" value={formData.location.city} onChange={(e) => handleChange(e, 'location', 'city')} required style={{ width: '100%' }} />
+              <label style={{ display: 'block', marginBottom: '5px' }}>State</label>
+              <select
+                value={formData.location.state}
+                onChange={e => {
+                  handleChange({ target: { value: e.target.value } }, 'location', 'state');
+                  // Reset city if state changes
+                  setFormData(f => ({ ...f, location: { ...f.location, city: '' } }));
+                  setCustomCity('');
+                }}
+                required
+                style={{ width: '100%', marginBottom: '8px' }}
+              >
+                <option value="">-- Select State --</option>
+                {INDIAN_STATES.map(state => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+              <label style={{ display: 'block', marginBottom: '5px' }}>City</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <select
+                  value={INDIAN_CITIES[formData.location.state]?.includes(formData.location.city) ? formData.location.city : ''}
+                  onChange={e => {
+                    handleChange({ target: { value: e.target.value } }, 'location', 'city');
+                    setCustomCity('');
+                  }}
+                  disabled={!formData.location.state}
+                  style={{ flex: 2 }}
+                >
+                  <option value="">-- Select City --</option>
+                  {formData.location.state && INDIAN_CITIES[formData.location.state]?.map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                  <option value="__custom">Other (Enter manually)</option>
+                </select>
+                {(formData.location.state && (!INDIAN_CITIES[formData.location.state]?.includes(formData.location.city) || formData.location.city === '__custom')) && (
+                  <input
+                    type="text"
+                    value={customCity || (formData.location.city === '__custom' ? '' : formData.location.city)}
+                    onChange={e => {
+                      setCustomCity(e.target.value);
+                      handleChange({ target: { value: e.target.value } }, 'location', 'city');
+                    }}
+                    placeholder="Enter city"
+                    style={{ flex: 2 }}
+                  />
+                )}
+                <button type="button" onClick={handleGetCoordinates} disabled={geoLoading} style={{ flex: 1, background: '#2980b9', color: 'white', border: 'none', borderRadius: '4px', padding: '0 8px', cursor: geoLoading ? 'not-allowed' : 'pointer' }}>
+                  {geoLoading ? 'Locating...' : 'Get Coordinates'}
+                </button>
+              </div>
+              {geoError && <div style={{ color: '#e74c3c', fontSize: '0.85rem', marginTop: '4px' }}>{geoError}</div>}
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <div style={{ flex: 1 }}>
