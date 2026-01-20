@@ -34,26 +34,114 @@ exports.performAnalysis = async (inputData) => {
  * Replace this with actual ML API call when ready
  */
 async function callMLModel(payload) {
-  // TODO: Replace with actual ML endpoint
-  // const response = await fetch('http://ml-service:5000/predict', {
-  //   method: 'POST',
-  //   body: JSON.stringify(payload)
-  // });
-  
-  // MOCK ML Response based on rule-based logic
+  try {
+    console.log('Calling ML model with payload:', JSON.stringify(payload, null, 2));
+    
+    const { spawn } = require('child_process');
+    const path = require('path');
+    
+    // Path to Python prediction service
+    const pythonScriptPath = path.join(__dirname, '..', '..', '..', 'machine-learning', 'predict_service.py');
+    
+    // Prepare input data for ML model
+    const mlInput = {
+      location: {
+        latitude: payload.latitude || 40.79,
+        longitude: payload.longitude || -73.95
+      },
+      roof: {
+        area: payload.roof_area || 50,
+        tilt: payload.tilt || 30,
+        azimuth: payload.azimuth || 180
+      },
+      energy: {
+        monthly_consumption: payload.monthly_consumption || 500
+      },
+      system: {
+        capacity_kw: (payload.roof_area * PANEL_POWER_PER_SQM) / 1000 || 5,
+        panel_age_years: payload.panel_age || 0,
+        days_since_cleaning: payload.days_since_cleaning || 0
+      }
+    };
+    
+    // Call Python service
+    return new Promise((resolve, reject) => {
+      const pythonProcess = spawn('python', [pythonScriptPath]);
+      
+      let outputData = '';
+      let errorData = '';
+      
+      // Send input data to Python script via stdin
+      pythonProcess.stdin.write(JSON.stringify(mlInput));
+      pythonProcess.stdin.end();
+      
+      // Collect output
+      pythonProcess.stdout.on('data', (data) => {
+        outputData += data.toString();
+      });
+      
+      pythonProcess.stderr.on('data', (data) => {
+        errorData += data.toString();
+      });
+      
+      pythonProcess.on('close', (code) => {
+        if (code !== 0) {
+          console.error('Python service error:', errorData);
+          // Fallback to mock data if Python service fails
+          resolve(getFallbackMLResponse(payload));
+        } else {
+          try {
+            const result = JSON.parse(outputData);
+            if (result.success) {
+              // Transform ML output to expected format
+              const systemSizeKw = mlInput.system.capacity_kw;
+              resolve({
+                recommended_system_kw: systemSizeKw,
+                expected_annual_generation_kwh: result.predictions.annual.energy_kwh,
+                efficiency_loss_percent: 100 - result.predictions.efficiency.system_efficiency_percent,
+                loss_breakdown: {
+                  dust: Math.min((payload.days_since_cleaning / 30) * 1.5, 8),
+                  shading: { 'none': 0, 'partial': 6, 'full': 15 }[payload.shading] || 0,
+                  age: (payload.panel_age || 0) * 0.5,
+                  temperature: 5
+                },
+                maintenance_alert: (payload.days_since_cleaning > 30) ? "Cleaning recommended" : "System operating normally",
+                estimated_savings_per_year: result.predictions.financial.annual_savings_inr,
+                ml_predictions: result.predictions,
+                ml_model_info: result.model_info
+              });
+            } else {
+              console.error('ML prediction failed:', result.error);
+              resolve(getFallbackMLResponse(payload));
+            }
+          } catch (error) {
+            console.error('Error parsing ML output:', error);
+            resolve(getFallbackMLResponse(payload));
+          }
+        }
+      });
+    });
+    
+  } catch (error) {
+    console.error('Error calling ML model:', error);
+    return getFallbackMLResponse(payload);
+  }
+}
+
+/**
+ * Fallback response when ML service unavailable
+ */
+function getFallbackMLResponse(payload) {
   const systemSizeKw = (payload.roof_area * PANEL_POWER_PER_SQM) / 1000;
   const annualGeneration = systemSizeKw * PEAK_SUN_HOURS_INDIA * 365;
   
-  // Calculate losses
   const dustLoss = Math.min((payload.days_since_cleaning / 30) * 1.5, 8);
   const shadingLossMap = { 'none': 0, 'partial': 6, 'full': 15 };
   const shadingLoss = shadingLossMap[payload.shading] || 0;
   const ageLoss = payload.panel_age * 0.5;
   const tempLoss = 5;
-  
   const totalLoss = dustLoss + shadingLoss + ageLoss + tempLoss;
   
-  // Maintenance alert
   let maintenanceAlert = "System operating normally";
   if (dustLoss > 5) maintenanceAlert = "Cleaning recommended";
   if (shadingLoss > 10) maintenanceAlert = "Critical: Address shading issues";
@@ -69,7 +157,8 @@ async function callMLModel(payload) {
       temperature: tempLoss
     },
     maintenance_alert: maintenanceAlert,
-    estimated_savings_per_year: parseFloat((annualGeneration * 6).toFixed(0)) // Assuming ₹6/kWh avg
+    estimated_savings_per_year: parseFloat((annualGeneration * 6).toFixed(0)),
+    ml_model_info: { model_name: "Fallback Model", note: "ML service unavailable" }
   };
 }
 
@@ -81,7 +170,7 @@ function transformMLResponse(mlData, originalInput) {
   const paybackYears = calculatePayback(mlData.recommended_system_kw, mlData.estimated_savings_per_year);
   const priority = getMaintenancePriority(mlData.efficiency_loss_percent);
   
-  return {
+  const response = {
     systemRecommendation: {
       size_kw: mlData.recommended_system_kw,
       annual_generation: mlData.expected_annual_generation_kwh,
@@ -115,9 +204,33 @@ function transformMLResponse(mlData, originalInput) {
     },
     metadata: {
       analyzed_at: new Date().toISOString(),
-      model_version: '1.0.0'
+      model_version: mlData.ml_model_info?.model_version || '1.0.0',
+      model_name: mlData.ml_model_info?.model_name || 'Unknown'
     }
   };
+  
+  // Include detailed ML predictions if available
+  if (mlData.ml_predictions) {
+    response.mlPredictions = {
+      instantaneous: mlData.ml_predictions.instantaneous,
+      daily: mlData.ml_predictions.daily,
+      annual: mlData.ml_predictions.annual,
+      efficiency: mlData.ml_predictions.efficiency,
+      financial: mlData.ml_predictions.financial
+    };
+    
+    response.modelInfo = {
+      name: mlData.ml_model_info.model_name,
+      version: mlData.ml_model_info.model_version,
+      accuracy: {
+        r2_score: mlData.ml_model_info.accuracy_r2,
+        mape_percent: mlData.ml_model_info.mape_percent
+      },
+      trained_on: mlData.ml_model_info.trained_on
+    };
+  }
+  
+  return response;
 }
 
 

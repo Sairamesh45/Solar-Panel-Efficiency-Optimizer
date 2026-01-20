@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "dataset_rows": 352,
+    "train_rows": 281,
+    "test_rows": 71,
+    "num_features": 31,
+    "targets": [
+      "dc_power_kw",
+      "ac_power_kw",
+      "energy_kwh"
+    ]
+  },
+  "model_evaluations": [
+    {
+      "model": "linear_regression",
+      "traditional_metrics": {
+        "mae": {
+          "dc_power_kw": 0.003659129159736284,
+          "ac_power_kw": 0.00351276399334691,
+          "energy_kwh": 0.00351276399334691
+        },
+        "rmse": {
+          "dc_power_kw": 0.004598698919873681,
+          "ac_power_kw": 0.004414750963078784,
+          "energy_kwh": 0.004414750963078784
+        },
+        "r2": {
+          "dc_power_kw": 0.9982076811184496,
+          "ac_power_kw": 0.9982076811184495,
+          "energy_kwh": 0.9982076811184495
+        }
+      },
+      "efficiency_metrics": {
+        "mape": {
+          "dc_power_kw": 6.960759073734679,
+          "ac_power_kw": 6.960759073735313,
+          "energy_kwh": 6.960759073735313
+        },
+        "rmse_normalized": {
+          "dc_power_kw": 2.998558143241945,
+          "ac_power_kw": 2.9985581432419783,
+          "energy_kwh": 2.9985581432419783
+        },
+        "pred_within_5pct": {
+          "dc_power_kw": 80.28169014084507,
+          "ac_power_kw": 80.28169014084507,
+          "energy_kwh": 80.28169014084507
+        },
+        "pred_within_10pct": {
+          "dc_power_kw": 91.54929577464789,
+          "ac_power_kw": 91.54929577464789,
+          "energy_kwh": 91.54929577464789
+        }
+      },
+      "training_time_seconds": 0.0172121524810791
+    },
+    {
+      "model": "random_forest",
+      "traditional_metrics": {
+        "mae": {
+          "dc_power_kw": 0.0027676123261345573,
+          "ac_power_kw": 0.0026293411945024618,
+          "energy_kwh": 0.0026293411945024665
+        },
+        "rmse": {
+          "dc_power_kw": 0.004230760525547621,
+          "ac_power_kw": 0.004033765783924172,
+          "energy_kwh": 0.004033765783924182
+        },
+        "r2": {
+          "dc_power_kw": 0.9984830117627296,
+          "ac_power_kw": 0.9985036809137197,
+          "energy_kwh": 0.9985036809137197
+        }
+      },
+      "efficiency_metrics": {
+        "mape": {
+          "dc_power_kw": 8.152905208345782,
+          "ac_power_kw": 7.287059341682285,
+          "energy_kwh": 7.287059341682286
+        },
+        "rmse_normalized": {
+          "dc_power_kw": 2.75864579243554,
+          "ac_power_kw": 2.739787893014349,
+          "energy_kwh": 2.7397879893014356
+        },
+        "pred_within_5pct": {
+          "dc_power_kw": 88.73239436619718,
+          "ac_power_kw": 88.73239436619718,
+          "energy_kwh": 88.73239436619718
+        },
+        "pred_within_10pct": {
+          "dc_power_kw": 91.54929577464789,
+          "ac_power_kw": 91.54929577464789,
+          "energy_kwh": 91.54929577464789
+        }
+      },
+      "training_time_seconds": 0.46857213973999023
+    },
+    {
+      "model": "hist_gradient_boosting",
+      "traditional_metrics": {
+        "mae": {
+          "dc_power_kw": 0.0025045227154693868,
+          "ac_power_kw": 0.0023990937535812067,
+          "energy_kwh": 0.0023990937535812067
+        },
+        "rmse": {
+          "dc_power_kw": 0.003475483557009006,
+          "ac_power_kw": 0.003315692007840309,
+          "energy_kwh": 0.003315692007840309
+        },
+        "r2": {
+          "dc_power_kw": 0.9989762926948783,
+          "ac_power_kw": 0.9989889998385239,
+          "energy_kwh": 0.9989889998385239
+        }
+      },
+      "efficiency_metrics": {
+        "mape": {
+          "dc_power_kw": 6.194623642057975,
+          "ac_power_kw": 6.193603795298692,
+          "energy_kwh": 6.193603795298692
+        },
+        "rmse_normalized": {
+          "dc_power_kw": 2.2661713026125003,
+          "ac_power_kw": 2.2520625407278447,
+          "energy_kwh": 2.2520625407278447
+        },
+        "pred_within_5pct": {
+          "dc_power_kw": 90.14084507042254,
+          "ac_power_kw": 90.14084507042254,
+          "energy_kwh": 90.14084507042254
+        },
+        "pred_within_10pct": {
+          "dc_power_kw": 94.36619718309859,
+          "ac_power_kw": 94.36619718309859,
+          "energy_kwh": 94.36619718309859
+        }
+      },
+      "training_time_seconds": 8.568670749664307
+    }
+  ],
+  "best_model_per_target": {
+    "dc_power_kw": {
+      "model": "hist_gradient_boosting",
+      "mae": 0.0025045227154693868,
+      "rmse": 0.003475483557009006,
+      "r2": 0.9989762926948783,
+      "mape": 6.194623642057975,
+      "rmse_normalized": 2.2661713026125003,
+      "within_5pct": 90.14084507042254,
+      "within_10pct": 94.36619718309859,
+      "training_time_seconds": 8.568670749664307
+    },
+    "ac_power_kw": {
+      "model": "hist_gradient_boosting",
+      "mae": 0.0023990937535812067,
+      "rmse": 0.003315692007840309,
+      "r2": 0.9989889998385239,
+      "mape": 6.193603795298692,
+      "rmse_normalized": 2.2520625407278447,
+      "within_5pct": 90.14084507042254,
+      "within_10pct": 94.36619718309859,
+      "training_time_seconds": 8.568670749664307
+    },
+    "energy_kwh": {
+      "model": "hist_gradient_boosting",
+      "mae": 0.0023990937535812067,
+      "rmse": 0.003315692007840309,
+      "r2": 0.9989889998385239,
+      "mape": 6.193603795298692,
+      "rmse_normalized": 2.2520625407278447,
+      "within_5pct": 90.14084507042254,
+      "within_10pct": 94.36619718309859,
+      "training_time_seconds": 8.568670749664307
+    }
+  },
+  "best_overall_model": {
+    "model": "hist_gradient_boosting",
+    "avg_r2": 0.9989847641239753,
+    "avg_mae": 0.0024342367408772664,
+    "avg_mape": 6.193943744218454,
+    "avg_within_5pct": 90.14084507042254,
+    "avg_within_10pct": 94.36619718309858,
+    "training_time_seconds": 8.568670749664307,
+    "model_path": "machine-learning/models/best_model_hist_gradient_boosting.pkl"
+  },
+  "efficiency_summary": {
+    "best_model": "hist_gradient_boosting",
+    "efficiency_score": {
+      "description": "Combined efficiency metric based on MAPE and prediction accuracy",
+      "overall_score": 93.1,
+      "components": {
+        "avg_mape": 6.19,
+        "prediction_accuracy_within_5pct": 90.14,
+        "prediction_accuracy_within_10pct": 94.37,
+        "r2_score": 0.99898
+      }
+    }
+  }
+}

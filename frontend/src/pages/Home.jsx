@@ -174,6 +174,8 @@ const Home = () => {
               icon="🤖"
               title="AI-Powered Analysis"
               description="Advanced machine learning algorithms analyze your solar system's performance and predict optimal configurations."
+              link="/ml-metrics"
+              linkText="View ML Model"
             />
             <FeatureCard 
               icon="💰"
@@ -298,33 +300,56 @@ const Home = () => {
   );
 };
 
-const FeatureCard = ({ icon, title, description }) => (
-  <div style={{
-    background: 'white',
-    padding: '30px',
-    borderRadius: '15px',
-    boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
-    textAlign: 'center',
-    transition: 'all 0.3s',
-    cursor: 'pointer'
-  }}
-  onMouseEnter={e => {
-    e.currentTarget.style.transform = 'translateY(-10px)';
-    e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.15)';
-  }}
-  onMouseLeave={e => {
-    e.currentTarget.style.transform = 'translateY(0)';
-    e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.08)';
-  }}>
-    <div style={{ fontSize: '3rem', marginBottom: '15px' }}>{icon}</div>
-    <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', color: '#2c3e50' }}>
-      {title}
-    </h3>
-    <p style={{ color: '#7f8c8d', lineHeight: '1.6', fontSize: '1rem' }}>
-      {description}
-    </p>
-  </div>
-);
+const FeatureCard = ({ icon, title, description, link, linkText }) => {
+  const cardContent = (
+    <div style={{
+      background: 'white',
+      padding: '30px',
+      borderRadius: '15px',
+      boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+      textAlign: 'center',
+      transition: 'all 0.3s',
+      cursor: 'pointer',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column'
+    }}
+    onMouseEnter={e => {
+      e.currentTarget.style.transform = 'translateY(-10px)';
+      e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.15)';
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.08)';
+    }}>
+      <div style={{ fontSize: '3rem', marginBottom: '15px' }}>{icon}</div>
+      <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', color: '#2c3e50' }}>
+        {title}
+      </h3>
+      <p style={{ color: '#7f8c8d', lineHeight: '1.6', fontSize: '1rem', flex: 1 }}>
+        {description}
+      </p>
+      {link && linkText && (
+        <Link to={link} style={{ 
+          marginTop: '15px',
+          padding: '10px 20px',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          textDecoration: 'none',
+          borderRadius: '25px',
+          display: 'inline-block',
+          fontWeight: 'bold',
+          fontSize: '0.9rem',
+          transition: 'all 0.2s'
+        }}>
+          {linkText} →
+        </Link>
+      )}
+    </div>
+  );
+  
+  return cardContent;
+};
 
 const StepCard = ({ number, title, description }) => (
   <div style={{
