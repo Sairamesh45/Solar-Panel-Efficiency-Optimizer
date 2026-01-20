@@ -22,7 +22,7 @@ def prepare_features(input_data):
         "location": {"latitude": float, "longitude": float},
         "roof": {"area": float, "tilt": float, "azimuth": float},
         "energy": {"monthly_consumption": float},
-        "system": {"panel_age_years": int, "days_since_cleaning": int}
+        "system": {"panel_age_years": int, "days_since_cleaning": int, "capacity_kw": float}
     }
     """
     
@@ -32,34 +32,59 @@ def prepare_features(input_data):
     tilt = input_data.get("roof", {}).get("tilt", 30)
     azimuth = input_data.get("roof", {}).get("azimuth", 180)
     system_capacity_kw = input_data.get("system", {}).get("capacity_kw", 5.0)
+    panel_age = input_data.get("system", {}).get("panel_age_years", 0)
+    days_since_cleaning = input_data.get("system", {}).get("days_since_cleaning", 0)
     
-    # For prediction, we need typical values for weather/irradiance
-    # These should ideally come from a weather API or be estimated based on location
-    # Using average values for demonstration
-    ghi = 500.0  # W/m² - average solar irradiance
-    dni = 700.0
-    dhi = 100.0
-    temp_air = 25.0  # °C
-    wind_speed = 2.0  # m/s
-    humidity = 50.0  # %
+    # Estimate solar irradiance based on latitude (varies significantly by location)
+    # Higher latitudes get less solar radiation
+    lat_factor = 1.0 - (abs(lat) / 90.0) * 0.4  # Reduce up to 40% at poles
     
-    # Calculate solar position (using noon values as approximation)
-    sun_elevation = 45.0
-    sun_azimuth = 180.0
-    sun_zenith = 45.0
+    # Base irradiance values adjusted by latitude
+    ghi_base = 600.0 * lat_factor  # W/m² - Global Horizontal Irradiance
+    dni_base = 850.0 * lat_factor  # W/m² - Direct Normal Irradiance
+    dhi_base = 150.0 * lat_factor  # W/m² - Diffuse Horizontal Irradiance
     
-    # Calculate POA (Plane of Array) irradiance
-    poa_global = ghi * 0.85  # Simplified calculation
-    poa_direct = dni * 0.6
+    # Adjust for system age (degradation)
+    age_degradation = 1.0 - (panel_age * 0.005)  # 0.5% per year
+    
+    # Adjust for cleaning status (dust accumulation)
+    cleaning_factor = 1.0 - min(days_since_cleaning / 90.0, 0.15)  # Up to 15% loss
+    
+    # Apply degradation factors
+    ghi = ghi_base * age_degradation * cleaning_factor
+    dni = dni_base * age_degradation * cleaning_factor
+    dhi = dhi_base * age_degradation * cleaning_factor
+    
+    # Temperature varies by latitude (tropical vs temperate)
+    temp_air = 25.0 + (abs(lat) - 20) * 0.2  # Warmer near equator
+    wind_speed = 2.5 + (abs(lat) / 30) * 0.5  # More wind at higher latitudes
+    humidity = max(30.0, 70.0 - abs(lat))  # Higher humidity near equator
+    
+    # Calculate solar position (varies by latitude - higher elevation near equator)
+    sun_elevation = 90.0 - abs(lat) + 15.0  # Higher at equator, lower at poles
+    sun_azimuth = azimuth  # Use panel azimuth for alignment
+    sun_zenith = 90.0 - sun_elevation
+    
+    # Tilt optimization factor (better alignment = more POA)
+    optimal_tilt = abs(lat)  # Optimal tilt ≈ latitude
+    tilt_efficiency = 1.0 - abs(tilt - optimal_tilt) / 90.0  # Penalty for sub-optimal tilt
+    
+    # Azimuth optimization (180° = south = best for northern hemisphere)
+    azimuth_penalty = abs(azimuth - 180.0) / 180.0 * 0.2  # Up to 20% loss for poor orientation
+    orientation_factor = 1.0 - azimuth_penalty
+    
+    # Calculate POA (Plane of Array) irradiance with tilt and orientation adjustments
+    poa_global = ghi * 0.85 * tilt_efficiency * orientation_factor
+    poa_direct = dni * 0.6 * tilt_efficiency * orientation_factor
     poa_diffuse = dhi * 1.2
     poa_sky_diffuse = dhi * 1.1
-    poa_ground_diffuse = ghi * 0.1
+    poa_ground_diffuse = ghi * 0.1 * (tilt / 90.0)  # More ground reflection at higher tilt
     
-    # Cell temperature (simplified)
+    # Cell temperature (higher temperatures reduce efficiency)
     cell_temperature = temp_air + (poa_global / 800) * 30
     
-    # Performance ratio estimate
-    performance_ratio = 0.85
+    # Performance ratio based on system quality and conditions
+    performance_ratio = 0.85 * age_degradation * cleaning_factor
     
     # Time features (using typical mid-day values)
     hour = 12
@@ -143,13 +168,42 @@ def predict_solar_output(input_data):
         
         # Calculate additional metrics
         system_capacity = input_data.get("system", {}).get("capacity_kw", 5.0)
+        lat = input_data.get("location", {}).get("latitude", 40.79)
+        panel_age = input_data.get("system", {}).get("panel_age_years", 0)
+        days_since_cleaning = input_data.get("system", {}).get("days_since_cleaning", 0)
+        tilt = input_data.get("roof", {}).get("tilt", 30)
+        azimuth = input_data.get("roof", {}).get("azimuth", 180)
         
-        # Daily and annual estimates (extrapolating from hourly)
-        daily_energy_kwh = energy_kwh * 5.5  # Peak sun hours per day (average)
+        # Peak sun hours vary by latitude (tropical regions get more sun)
+        # Equator (~0°): 5.5-6 hrs, Mid-latitudes (30-45°): 4-5 hrs, High latitudes (>45°): 3-4 hrs
+        lat_abs = abs(lat)
+        if lat_abs < 15:
+            peak_sun_hours = 6.0  # Tropical
+        elif lat_abs < 30:
+            peak_sun_hours = 5.5  # Subtropical
+        elif lat_abs < 45:
+            peak_sun_hours = 4.5  # Temperate
+        else:
+            peak_sun_hours = 3.5  # High latitude
+        
+        # Adjust for system orientation and tilt
+        optimal_tilt = lat_abs
+        tilt_efficiency = 1.0 - abs(tilt - optimal_tilt) / 90.0
+        azimuth_efficiency = 1.0 - abs(azimuth - 180.0) / 180.0 * 0.2
+        
+        # System degradation factors
+        age_factor = 1.0 - (panel_age * 0.005)
+        cleaning_factor = 1.0 - min(days_since_cleaning / 90.0, 0.15)
+        
+        # Overall system efficiency
+        combined_efficiency = tilt_efficiency * azimuth_efficiency * age_factor * cleaning_factor
+        
+        # Daily and annual estimates (scale the hourly prediction)
+        daily_energy_kwh = energy_kwh * peak_sun_hours * combined_efficiency
         annual_energy_kwh = daily_energy_kwh * 365
         
-        # Efficiency calculation
-        theoretical_max = system_capacity * 5.5 * 365  # kWh/year at 100% efficiency
+        # Efficiency calculation based on theoretical maximum
+        theoretical_max = system_capacity * peak_sun_hours * 365  # kWh/year at ideal conditions
         actual_efficiency = (annual_energy_kwh / theoretical_max * 100) if theoretical_max > 0 else 0
         
         # Performance metrics
@@ -174,12 +228,17 @@ def predict_solar_output(input_data):
                 "efficiency": {
                     "system_efficiency_percent": round(actual_efficiency, 2),
                     "capacity_factor_percent": round(capacity_factor, 2),
-                    "performance_ratio": 0.85
+                    "performance_ratio": round(combined_efficiency * 0.85, 3),
+                    "degradation_factor": round(age_factor, 3),
+                    "soiling_loss_percent": round((1 - cleaning_factor) * 100, 2),
+                    "orientation_efficiency": round(azimuth_efficiency, 3),
+                    "tilt_efficiency": round(tilt_efficiency, 3)
                 },
                 "financial": {
-                    "annual_savings_inr": round(annual_energy_kwh * 6, 0),  # ₹6/kWh
-                    "monthly_savings_inr": round((annual_energy_kwh * 6) / 12, 0),
-                    "25_year_savings_inr": round(annual_energy_kwh * 6 * 25, 0)
+                    "annual_savings_inr": round(annual_energy_kwh * 6.5, 0),  # ₹6.5/kWh average tariff
+                    "monthly_savings_inr": round((annual_energy_kwh * 6.5) / 12, 0),
+                    "25_year_savings_inr": round(annual_energy_kwh * 6.5 * 25 * 0.95, 0),  # 5% discount for degradation
+                    "cost_per_kwh": 6.5
                 }
             },
             "model_info": {
@@ -187,8 +246,12 @@ def predict_solar_output(input_data):
                 "model_version": "1.0.0",
                 "trained_on": "2025-09-02 to 2025-11-04 data",
                 "accuracy_r2": 0.9990,
-                "mape_percent": 6.19
-            },
+                "mape_petilt,
+                "azimuth": azimuth,
+                "panel_age_years": panel_age,
+                "days_since_cleaning": days_since_cleaning,
+                "peak_sun_hours": round(peak_sun_hours, 2),
+                "combined_efficiency": round(combined_efficiency, 3
             "input_features": {
                 "location": f"{input_data.get('location', {}).get('latitude', 0)}, {input_data.get('location', {}).get('longitude', 0)}",
                 "system_capacity_kw": system_capacity,

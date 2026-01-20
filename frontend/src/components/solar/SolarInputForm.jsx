@@ -27,6 +27,7 @@ const SolarInputForm = ({ onSubmit, loading }) => {
 
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState('');
+  const [currentLocLoading, setCurrentLocLoading] = useState(false);
 
   const handleGetCoordinates = async () => {
     setGeoLoading(true);
@@ -47,6 +48,53 @@ const SolarInputForm = ({ onSubmit, loading }) => {
     } finally {
       setGeoLoading(false);
     }
+  };
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setGeoError('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setCurrentLocLoading(true);
+    setGeoError('');
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData({
+          ...formData,
+          location: {
+            ...formData.location,
+            latitude: parseFloat(position.coords.latitude.toFixed(4)),
+            longitude: parseFloat(position.coords.longitude.toFixed(4))
+          }
+        });
+        setCurrentLocLoading(false);
+      },
+      (error) => {
+        let errorMessage = 'Failed to get current location';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location permission denied. Please enable location access.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out.';
+            break;
+          default:
+            errorMessage = 'An unknown error occurred.';
+        }
+        setGeoError(errorMessage);
+        setCurrentLocLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   };
 
   const handleSubmit = (e) => {
@@ -109,8 +157,46 @@ const SolarInputForm = ({ onSubmit, loading }) => {
                     style={{ flex: 2 }}
                   />
                 )}
-                <button type="button" onClick={handleGetCoordinates} disabled={geoLoading} style={{ flex: 1, background: '#2980b9', color: 'white', border: 'none', borderRadius: '4px', padding: '0 8px', cursor: geoLoading ? 'not-allowed' : 'pointer' }}>
+                <button 
+                  type="button" 
+                  onClick={handleGetCoordinates} 
+                  disabled={geoLoading || currentLocLoading} 
+                  style={{ 
+                    flex: 1, 
+                    background: '#2980b9', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '4px', 
+                    padding: '8px', 
+                    cursor: (geoLoading || currentLocLoading) ? 'not-allowed' : 'pointer',
+                    fontSize: '0.9rem'
+                  }}
+                >
                   {geoLoading ? 'Locating...' : 'Get Coordinates'}
+                </button>
+              </div>
+              <div style={{ marginTop: '8px' }}>
+                <button 
+                  type="button" 
+                  onClick={handleGetCurrentLocation} 
+                  disabled={geoLoading || currentLocLoading} 
+                  style={{ 
+                    width: '100%',
+                    background: '#27ae60', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '4px', 
+                    padding: '8px', 
+                    cursor: (geoLoading || currentLocLoading) ? 'not-allowed' : 'pointer',
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span style={{ fontSize: '1.1rem' }}>📍</span>
+                  {currentLocLoading ? 'Getting location...' : 'Use Current Location'}
                 </button>
               </div>
               {geoError && <div style={{ color: '#e74c3c', fontSize: '0.85rem', marginTop: '4px' }}>{geoError}</div>}

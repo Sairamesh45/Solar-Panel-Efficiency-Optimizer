@@ -31,6 +31,7 @@ MODELS_DIR = os.path.join(os.path.dirname(__file__), "models")
 @dataclass
 class EfficiencyMetrics:
     """Efficiency-based metrics for model evaluation."""
+
     mape: Dict[str, float]  # Mean Absolute Percentage Error
     rmse_normalized: Dict[str, float]  # RMSE as % of mean value
     pred_within_5pct: Dict[str, float]  # % predictions within ±5% of actual
@@ -40,6 +41,7 @@ class EfficiencyMetrics:
 @dataclass
 class ModelMetrics:
     """Traditional regression metrics."""
+
     mae: Dict[str, float]
     rmse: Dict[str, float]
     r2: Dict[str, float]
@@ -48,6 +50,7 @@ class ModelMetrics:
 @dataclass
 class ModelEvaluation:
     """Complete model evaluation with traditional and efficiency metrics."""
+
     model_name: str
     metrics: ModelMetrics
     efficiency: EfficiencyMetrics
@@ -84,9 +87,7 @@ def load_and_engineer(csv_path: str) -> pd.DataFrame:
 
 def make_feature_target(df: pd.DataFrame):
     """Split into features and targets."""
-    feature_cols = [
-        col for col in df.columns if col not in TARGET_COLS + ["datetime"]
-    ]
+    feature_cols = [col for col in df.columns if col not in TARGET_COLS + ["datetime"]]
     X = df[feature_cols].select_dtypes(exclude=["object"])
     y = df[TARGET_COLS]
     return X, y
@@ -140,7 +141,8 @@ def calculate_efficiency_metrics(
         non_zero = actual != 0
         if non_zero.sum() > 0:
             mape[target] = float(
-                np.mean(np.abs((actual[non_zero] - pred[non_zero]) / actual[non_zero])) * 100
+                np.mean(np.abs((actual[non_zero] - pred[non_zero]) / actual[non_zero]))
+                * 100
             )
         else:
             mape[target] = 0.0
@@ -148,7 +150,9 @@ def calculate_efficiency_metrics(
         # Normalized RMSE
         rmse = math.sqrt(mean_squared_error(actual, pred))
         mean_val = np.mean(actual)
-        rmse_normalized[target] = float((rmse / mean_val) * 100) if mean_val != 0 else 0.0
+        rmse_normalized[target] = (
+            float((rmse / mean_val) * 100) if mean_val != 0 else 0.0
+        )
 
         # Percentage within tolerance
         pct_error = np.abs((actual - pred) / (actual + 1e-8)) * 100
@@ -168,10 +172,11 @@ def evaluate_model(
 ) -> Tuple[ModelMetrics, EfficiencyMetrics, pd.DataFrame]:
     """Train and evaluate model."""
     import time
+
     start = time.time()
     model.fit(X_train, y_train)
     training_time = time.time() - start
-    
+
     preds = model.predict(X_test)
     preds_df = pd.DataFrame(preds, columns=TARGET_COLS)
 
@@ -180,9 +185,7 @@ def evaluate_model(
         for target in TARGET_COLS
     }
     rmse = {
-        target: float(
-            math.sqrt(mean_squared_error(y_test[target], preds_df[target]))
-        )
+        target: float(math.sqrt(mean_squared_error(y_test[target], preds_df[target])))
         for target in TARGET_COLS
     }
     r2 = {
@@ -259,21 +262,26 @@ def main(csv_path: str = DEFAULT_DATA_FILE) -> str:
 
     # Overall best model (by average R² across all targets)
     best_eval = max(
-        evaluations,
-        key=lambda e: np.mean([e.metrics.r2[t] for t in TARGET_COLS])
+        evaluations, key=lambda e: np.mean([e.metrics.r2[t] for t in TARGET_COLS])
     )
     print(f"\nBest overall model: {best_eval.model_name}")
-    print(f"  Average R²: {np.mean([best_eval.metrics.r2[t] for t in TARGET_COLS]):.6f}")
-    print(f"  Average MAPE: {np.mean([best_eval.efficiency.mape[t] for t in TARGET_COLS]):.4f}%")
+    print(
+        f"  Average R²: {np.mean([best_eval.metrics.r2[t] for t in TARGET_COLS]):.6f}"
+    )
+    print(
+        f"  Average MAPE: {np.mean([best_eval.efficiency.mape[t] for t in TARGET_COLS]):.4f}%"
+    )
 
-    # Save best model
-    best_model = models[best_eval.model_name]
-    best_model.fit(X_train, y_train)
-    model_path = os.path.join(MODELS_DIR, f"best_model_{best_eval.model_name}.pkl")
-    joblib.dump(best_model, model_path)
-    print(f"Best model saved to: {model_path}")
+    # Save ALL trained models for future use
+    saved_model_paths = {}
+    for name, model in models.items():
+        model.fit(X_train, y_train)  # Ensure model is trained
+        model_path = os.path.join(MODELS_DIR, f"best_model_{name}.pkl")
+        joblib.dump(model, model_path)
+        saved_model_paths[name] = model_path
+        print(f"Model {name} saved to: {model_path}")
 
-    # Build JSON payload with only the best model's outputs
+    # Build JSON payload with all models evaluated
     payload = {
         "metadata": {
             "dataset_rows": len(df),
@@ -282,20 +290,30 @@ def main(csv_path: str = DEFAULT_DATA_FILE) -> str:
             "num_features": len(X.columns),
             "targets": TARGET_COLS,
         },
-        "best_model": {
+        "best_overall_model": {
             "model": best_eval.model_name,
             "traditional_metrics": asdict(best_eval.metrics),
             "efficiency_metrics": asdict(best_eval.efficiency),
             "training_time_seconds": best_eval.training_time,
             "sample_predictions": best_eval.sample_predictions,
-            "model_path": model_path,
+            "model_path": saved_model_paths[best_eval.model_name],
         },
+        "model_evaluations": [
+            {
+                "model_name": e.model_name,
+                "traditional_metrics": asdict(e.metrics),
+                "efficiency_metrics": asdict(e.efficiency),
+                "training_time_seconds": e.training_time,
+                "model_path": saved_model_paths[e.model_name],
+            }
+            for e in evaluations
+        ],
     }
 
     json_output = json.dumps(payload, indent=2)
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("FINAL EVALUATION REPORT (JSON)")
-    print("="*60)
+    print("=" * 60)
     print(json_output)
     return json_output
 

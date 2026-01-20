@@ -15,6 +15,27 @@ const PEAK_SUN_HOURS_INDIA = 5.5;
 const PANEL_POWER_PER_SQM = 150;
 
 /**
+ * Convert orientation string to azimuth degrees
+ */
+function parseAzimuthFromOrientation(orientation) {
+  const orientationMap = {
+    'N': 0,
+    'north': 0,
+    'NE': 45,
+    'E': 90,
+    'east': 90,
+    'SE': 135,
+    'S': 180,
+    'south': 180,
+    'SW': 225,
+    'W': 270,
+    'west': 270,
+    'NW': 315
+  };
+  return orientationMap[orientation] || 180; // Default to south
+}
+
+/**
  * Main analysis function
  * Orchestrates: Data formatting → ML call → Response transformation
  */
@@ -22,7 +43,7 @@ exports.performAnalysis = async (inputData) => {
   // 1. Format data for ML model
   const mlPayload = formatForML(inputData);
   
-  // 2. Call ML model (currently mocked, replace with actual endpoint when ready)
+  // 2. Call ML model
   const mlResponse = await callMLModel(mlPayload);
   
   // 3. Transform ML response to judge-friendly format
@@ -46,16 +67,16 @@ async function callMLModel(payload) {
     // Prepare input data for ML model
     const mlInput = {
       location: {
-        latitude: payload.latitude || 40.79,
-        longitude: payload.longitude || -73.95
+        latitude: payload.lat || payload.latitude || 40.79,
+        longitude: payload.lon || payload.longitude || -73.95
       },
       roof: {
         area: payload.roof_area || 50,
         tilt: payload.tilt || 30,
-        azimuth: payload.azimuth || 180
+        azimuth: parseAzimuthFromOrientation(payload.orientation) || 180
       },
       energy: {
-        monthly_consumption: payload.monthly_consumption || 500
+        monthly_consumption: payload.monthly_kwh || payload.monthly_consumption || 500
       },
       system: {
         capacity_kw: (payload.roof_area * PANEL_POWER_PER_SQM) / 1000 || 5,
@@ -133,14 +154,44 @@ async function callMLModel(payload) {
  */
 function getFallbackMLResponse(payload) {
   const systemSizeKw = (payload.roof_area * PANEL_POWER_PER_SQM) / 1000;
-  const annualGeneration = systemSizeKw * PEAK_SUN_HOURS_INDIA * 365;
   
+  // Location-based solar irradiance
+  const lat = Math.abs(payload.lat || 0);
+  let peakSunHours = 5.5; // Default
+  if (lat < 15) peakSunHours = 6.0;      // Tropical
+  else if (lat < 30) peakSunHours = 5.5; // Subtropical
+  else if (lat < 45) peakSunHours = 4.5; // Temperate
+  else peakSunHours = 3.5;               // High latitude
+  
+  // System degradation
+  const ageFactor = 1.0 - ((payload.panel_age || 0) * 0.005);
+  const cleaningFactor = 1.0 - Math.min((payload.days_since_cleaning || 0) / 90.0, 0.15);
+  
+  // Orientation efficiency
+  const tilt = payload.tilt || 30;
+  const optimalTilt = lat;
+  const tiltEfficiency = 1.0 - Math.abs(tilt - optimalTilt) / 90.0;
+  
+  // Parse orientation to azimuth
+  const orientationMap = { 'N': 0, 'north': 0, 'E': 90, 'east': 90, 'S': 180, 'south': 180, 'W': 270, 'west': 270 };
+  const azimuth = orientationMap[payload.orientation] || 180;
+  const azimuthEfficiency = 1.0 - Math.abs(azimuth - 180) / 180.0 * 0.2;
+  
+  // Combined efficiency
+  const combinedEfficiency = tiltEfficiency * azimuthEfficiency * ageFactor * cleaningFactor;
+  
+  // Annual generation
+  const annualGeneration = systemSizeKw * peakSunHours * 365 * combinedEfficiency;
+  
+  // Loss breakdown
   const dustLoss = Math.min((payload.days_since_cleaning / 30) * 1.5, 8);
   const shadingLossMap = { 'none': 0, 'partial': 6, 'full': 15 };
   const shadingLoss = shadingLossMap[payload.shading] || 0;
   const ageLoss = payload.panel_age * 0.5;
   const tempLoss = 5;
-  const totalLoss = dustLoss + shadingLoss + ageLoss + tempLoss;
+  const orientationLoss = (1 - azimuthEfficiency) * 20;
+  const tiltLoss = (1 - tiltEfficiency) * 10;
+  const totalLoss = dustLoss + shadingLoss + ageLoss + tempLoss + orientationLoss + tiltLoss;
   
   let maintenanceAlert = "System operating normally";
   if (dustLoss > 5) maintenanceAlert = "Cleaning recommended";
@@ -154,11 +205,18 @@ function getFallbackMLResponse(payload) {
       dust: parseFloat(dustLoss.toFixed(1)),
       shading: parseFloat(shadingLoss.toFixed(1)),
       age: parseFloat(ageLoss.toFixed(1)),
-      temperature: tempLoss
+      temperature: tempLoss,
+      orientation: parseFloat(orientationLoss.toFixed(1)),
+      tilt: parseFloat(tiltLoss.toFixed(1))
     },
     maintenance_alert: maintenanceAlert,
-    estimated_savings_per_year: parseFloat((annualGeneration * 6).toFixed(0)),
-    ml_model_info: { model_name: "Fallback Model", note: "ML service unavailable" }
+    estimated_savings_per_year: parseFloat((annualGeneration * 6.5).toFixed(0)),
+    ml_model_info: { 
+      model_name: "Fallback Model", 
+      note: "ML service unavailable - using simplified calculations",
+      peak_sun_hours: peakSunHours,
+      combined_efficiency: parseFloat(combinedEfficiency.toFixed(3))
+    }
   };
 }
 
@@ -169,6 +227,27 @@ function transformMLResponse(mlData, originalInput) {
   const majorIssues = identifyMajorIssues(mlData.loss_breakdown);
   const paybackYears = calculatePayback(mlData.recommended_system_kw, mlData.estimated_savings_per_year);
   const priority = getMaintenancePriority(mlData.efficiency_loss_percent);
+  
+  // Calculate detailed costs
+  const systemSizeKw = mlData.recommended_system_kw;
+  let costPerKw;
+  if (systemSizeKw <= 3) costPerKw = 75000;
+  else if (systemSizeKw <= 10) costPerKw = 65000;
+  else costPerKw = 55000;
+  
+  const grossCost = systemSizeKw * costPerKw;
+  
+  // Calculate subsidy
+  let subsidy = 0;
+  if (systemSizeKw <= 3) {
+    subsidy = grossCost * 0.40;
+  } else if (systemSizeKw <= 10) {
+    subsidy = (3 * costPerKw * 0.40) + ((systemSizeKw - 3) * costPerKw * 0.20);
+  } else {
+    subsidy = (3 * costPerKw * 0.40) + (7 * costPerKw * 0.20);
+  }
+  
+  const netCost = grossCost - subsidy;
   
   const response = {
     systemRecommendation: {
@@ -192,7 +271,13 @@ function transformMLResponse(mlData, originalInput) {
       yearly_savings: mlData.estimated_savings_per_year,
       monthly_savings: Math.round(mlData.estimated_savings_per_year / 12),
       payback_years: paybackYears,
-      lifetime_savings: Math.round(mlData.estimated_savings_per_year * 25) // 25yr lifespan
+      lifetime_savings: Math.round(mlData.estimated_savings_per_year * 25), // 25yr lifespan
+      system_cost: {
+        gross_cost_inr: Math.round(grossCost),
+        subsidy_inr: Math.round(subsidy),
+        net_cost_inr: Math.round(netCost),
+        cost_per_kw: costPerKw
+      }
     },
     location: {
       city: originalInput.location.city,

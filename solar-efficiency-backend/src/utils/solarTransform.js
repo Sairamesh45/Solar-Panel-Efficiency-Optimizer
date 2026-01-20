@@ -65,15 +65,43 @@ exports.formatForML = (inputData) => {
 };
 
 /**
- * Calculate payback period
- * @param {number} systemCost - Estimated system cost (₹700 per Watt in India)
+ * Calculate payback period with government subsidies
+ * @param {number} systemSizeKw - System size in kW
  * @param {number} annualSavings - Annual savings in INR
  * @returns {number} Years to payback
  */
 exports.calculatePayback = (systemSizeKw, annualSavings) => {
-  const costPerWatt = 700; // INR per Watt (industry avg in India)
-  const systemCost = systemSizeKw * 1000 * costPerWatt;
-  return parseFloat((systemCost / annualSavings).toFixed(1));
+  if (!annualSavings || annualSavings <= 0) return 999; // Avoid division by zero
+  
+  // Cost per kW varies by system size (economies of scale)
+  let costPerKw;
+  if (systemSizeKw <= 3) {
+    costPerKw = 75000; // INR per kW for small systems (1-3 kW)
+  } else if (systemSizeKw <= 10) {
+    costPerKw = 65000; // INR per kW for medium systems (3-10 kW)
+  } else {
+    costPerKw = 55000; // INR per kW for large systems (>10 kW)
+  }
+  
+  const grossCost = systemSizeKw * costPerKw;
+  
+  // Government subsidy (varies by system size)
+  // Up to 3 kW: 40% subsidy
+  // 3-10 kW: 40% on first 3kW, 20% on rest
+  // >10 kW: 40% on first 3kW, 20% on next 7kW
+  let subsidy = 0;
+  if (systemSizeKw <= 3) {
+    subsidy = grossCost * 0.40;
+  } else if (systemSizeKw <= 10) {
+    subsidy = (3 * costPerKw * 0.40) + ((systemSizeKw - 3) * costPerKw * 0.20);
+  } else {
+    subsidy = (3 * costPerKw * 0.40) + (7 * costPerKw * 0.20);
+  }
+  
+  const netCost = grossCost - subsidy;
+  const paybackYears = netCost / annualSavings;
+  
+  return parseFloat(paybackYears.toFixed(1));
 };
 
 /**
