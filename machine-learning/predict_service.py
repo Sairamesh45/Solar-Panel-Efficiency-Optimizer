@@ -246,13 +246,14 @@ def predict_solar_output(input_data):
                 "model_version": "1.0.0",
                 "trained_on": "2025-09-02 to 2025-11-04 data",
                 "accuracy_r2": 0.9990,
-                "mape_petilt,
+                "mape_percent": 0.89
+            },
+            "input_features": {
                 "azimuth": azimuth,
                 "panel_age_years": panel_age,
                 "days_since_cleaning": days_since_cleaning,
                 "peak_sun_hours": round(peak_sun_hours, 2),
-                "combined_efficiency": round(combined_efficiency, 3
-            "input_features": {
+                "combined_efficiency": round(combined_efficiency, 3),
                 "location": f"{input_data.get('location', {}).get('latitude', 0)}, {input_data.get('location', {}).get('longitude', 0)}",
                 "system_capacity_kw": system_capacity,
                 "tilt": input_data.get("roof", {}).get("tilt", 30),
