@@ -9,7 +9,7 @@ const EfficiencyLossChart = ({ lossBreakdown }) => {
   if (!lossBreakdown) return null;
 
   const data = {
-    labels: ['Dust Loss', 'Shading Loss', 'Age Degradation', 'Temperature Loss'],
+    labels: ['Dust Loss', 'Shading Loss', 'Age Degradation', 'Temperature Loss', 'Orientation Loss', 'Tilt Loss'],
     datasets: [
       {
         label: 'Efficiency Loss (%)',
@@ -18,12 +18,16 @@ const EfficiencyLossChart = ({ lossBreakdown }) => {
           lossBreakdown.shading || 0,
           lossBreakdown.age || 0,
           lossBreakdown.temperature || 0,
+          lossBreakdown.orientation || 0,
+          lossBreakdown.tilt || 0,
         ],
         backgroundColor: [
           CHART_COLORS.dust,
           CHART_COLORS.shading,
           CHART_COLORS.age,
           CHART_COLORS.temperature,
+          CHART_COLORS.orientation || '#9b59b6',
+          CHART_COLORS.tilt || '#1abc9c',
         ],
         borderWidth: 2,
         borderColor: '#fff',

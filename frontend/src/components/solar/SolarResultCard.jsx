@@ -135,26 +135,26 @@ const SolarResultCard = ({ result }) => {
           e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
         }}>
           <div style={{ fontSize: '2.2rem', marginBottom: '12px' }}>📊</div>
-          <h3 style={{ color: '#e74c3c', margin: '0 0 15px 0', fontSize: '1.3rem' }}>
-            System Performance
+          <h3 style={{ color: '#27ae60', margin: '0 0 15px 0', fontSize: '1.3rem' }}>
+            System Health Score
           </h3>
-          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#e74c3c', marginBottom: '5px' }}>
-            {formatPercentage(performanceAnalysis.efficiency_loss)}
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '5px', color: performanceAnalysis.system_health_score > 80 ? '#27ae60' : performanceAnalysis.system_health_score > 60 ? '#f39c12' : '#e74c3c' }}>
+            {formatNumber(performanceAnalysis.system_health_score, 1)}%
           </div>
-          <div style={{ color: '#555', fontSize: '0.95rem', marginBottom: '15px' }}>Efficiency Loss</div>
+          <div style={{ color: '#555', fontSize: '0.95rem', marginBottom: '15px' }}>Overall System Health</div>
           <div style={{ 
-            borderTop: '1px solid rgba(231, 76, 60, 0.3)', 
+            borderTop: '1px solid rgba(39, 174, 96, 0.3)', 
             paddingTop: '15px',
             fontSize: '0.95rem'
           }}>
             <div>
-              <strong>Health Score:</strong><br/>
+              <strong>Efficiency Loss:</strong><br/>
               <span style={{ 
                 fontSize: '1.2rem', 
-                color: performanceAnalysis.system_health_score > 80 ? '#27ae60' : 
-                       performanceAnalysis.system_health_score > 60 ? '#f39c12' : '#e74c3c'
+                color: performanceAnalysis.efficiency_loss < 10 ? '#27ae60' : 
+                       performanceAnalysis.efficiency_loss < 20 ? '#f39c12' : '#e74c3c'
               }}>
-                {formatNumber(performanceAnalysis.system_health_score, 2)}%
+                {formatPercentage(performanceAnalysis.efficiency_loss)}
               </span>
             </div>
           </div>

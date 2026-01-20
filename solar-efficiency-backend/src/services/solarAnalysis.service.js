@@ -116,15 +116,28 @@ async function callMLModel(payload) {
             if (result.success) {
               // Transform ML output to expected format
               const systemSizeKw = mlInput.system.capacity_kw;
+              
+              // Calculate efficiency loss from degradation factors
+              const soilingLoss = result.predictions.efficiency.soiling_loss_percent || 0;
+              const ageLoss = ((1 - result.predictions.efficiency.degradation_factor) * 100) || 0;
+              const orientationLoss = ((1 - result.predictions.efficiency.orientation_efficiency) * 20) || 0;
+              const tiltLoss = ((1 - result.predictions.efficiency.tilt_efficiency) * 10) || 0;
+              const shadingLossMap = { 'none': 0, 'partial': 6, 'full': 15 };
+              const shadingLoss = shadingLossMap[payload.shading] || 0;
+              const tempLoss = 5; // Temperature loss estimate
+              const totalLoss = soilingLoss + ageLoss + orientationLoss + tiltLoss + shadingLoss + tempLoss;
+              
               resolve({
                 recommended_system_kw: systemSizeKw,
                 expected_annual_generation_kwh: result.predictions.annual.energy_kwh,
-                efficiency_loss_percent: 100 - result.predictions.efficiency.system_efficiency_percent,
+                efficiency_loss_percent: Math.min(totalLoss, 50), // Cap at 50%
                 loss_breakdown: {
-                  dust: Math.min((payload.days_since_cleaning / 30) * 1.5, 8),
-                  shading: { 'none': 0, 'partial': 6, 'full': 15 }[payload.shading] || 0,
-                  age: (payload.panel_age || 0) * 0.5,
-                  temperature: 5
+                  dust: soilingLoss,
+                  shading: shadingLoss,
+                  age: ageLoss,
+                  temperature: tempLoss,
+                  orientation: orientationLoss,
+                  tilt: tiltLoss
                 },
                 maintenance_alert: (payload.days_since_cleaning > 30) ? "Cleaning recommended" : "System operating normally",
                 estimated_savings_per_year: result.predictions.financial.annual_savings_inr,
@@ -260,7 +273,7 @@ function transformMLResponse(mlData, originalInput) {
       efficiency_loss: mlData.efficiency_loss_percent,
       major_issues: majorIssues,
       loss_breakdown: mlData.loss_breakdown,
-      system_health_score: Math.max(100 - mlData.efficiency_loss_percent * 3, 0)
+      system_health_score: Math.round(Math.max(100 - mlData.efficiency_loss_percent * 1.5, 20))
     },
     maintenance: {
       alert: mlData.maintenance_alert,

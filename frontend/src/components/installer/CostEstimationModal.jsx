@@ -75,6 +75,8 @@ const CostEstimationModal = ({ maintenanceRequest, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    
     setLoading(true);
     
     try {
@@ -91,12 +93,16 @@ const CostEstimationModal = ({ maintenanceRequest, onClose, onSuccess }) => {
       });
       
       if (response.data.success) {
-        onSuccess?.(response.data.data);
+        // Update parent state first
+        if (onSuccess) {
+          onSuccess(response.data.data);
+        }
+        // Close immediately
         onClose();
       }
     } catch (err) {
       console.error('Failed to save cost estimate:', err);
-    } finally {
+      alert('Failed to save cost estimate. Please try again.');
       setLoading(false);
     }
   };
@@ -107,28 +113,39 @@ const CostEstimationModal = ({ maintenanceRequest, onClose, onSuccess }) => {
   );
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: 16,
-        padding: 30,
-        maxWidth: 700,
-        width: '95%',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
-      }}>
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000
+      }}
+      onClick={(e) => {
+        // Only close if clicking the backdrop, not the modal content
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div 
+        style={{
+          backgroundColor: 'white',
+          borderRadius: 16,
+          padding: 30,
+          maxWidth: 700,
+          width: '95%',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h2 style={{ margin: 0, color: '#2c3e50' }}>💰 Cost Estimation</h2>
           <button

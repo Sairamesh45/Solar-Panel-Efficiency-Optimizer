@@ -755,11 +755,11 @@ const CustomerDashboard = () => {
                               netCost = grossCost - subsidy;
                             }
                             
-                            if (!netCost || netCost === 0) return 'N/A';
+                            if (!netCost || netCost === 0 || yearlySavings === 0) return 'N/A';
                             // ROI for 10 years = (10 year savings - Cost) / Cost * 100
                             const tenYearSavings = yearlySavings * 10;
                             const roi = ((tenYearSavings - netCost) / netCost) * 100;
-                            return roi > 0 ? roi.toFixed(0) : 0;
+                            return roi.toFixed(0);
                           })()}%
                         </div>
                       </div>

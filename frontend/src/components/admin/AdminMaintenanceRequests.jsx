@@ -200,6 +200,79 @@ const AdminMaintenanceRequests = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Admin Actions - Only show for pending requests */}
+                {req.status === 'pending' && !req.installerId && (
+                  <div style={{ 
+                    marginTop: '18px',
+                    paddingTop: '18px',
+                    borderTop: '1px solid #f1f6f9'
+                  }}>
+                    <label style={{ 
+                      display: 'block', 
+                      fontSize: '0.85rem', 
+                      fontWeight: '700', 
+                      color: '#2c3e50',
+                      marginBottom: '10px' 
+                    }}>
+                      Assign Installer
+                    </label>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <select
+                        value={selectedInstallers[req._id] || ''}
+                        onChange={(e) => handleSelectInstaller(req._id, e.target.value)}
+                        style={{
+                          flex: 1,
+                          padding: '10px 14px',
+                          borderRadius: '8px',
+                          border: '1px solid #d1dce5',
+                          fontSize: '0.95rem',
+                          color: '#2c3e50',
+                          backgroundColor: '#fff',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">Select an installer...</option>
+                        {installers.filter(inst => inst.role === 'Installer').map(inst => (
+                          <option key={inst._id} value={inst._id}>{inst.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleAssign(req._id)}
+                        disabled={!selectedInstallers[req._id]}
+                        style={{
+                          padding: '10px 24px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: selectedInstallers[req._id] 
+                            ? 'linear-gradient(135deg, #27ae60, #1e8449)' 
+                            : '#d1dce5',
+                          color: selectedInstallers[req._id] ? '#fff' : '#7f8c8d',
+                          fontSize: '0.95rem',
+                          fontWeight: '600',
+                          cursor: selectedInstallers[req._id] ? 'pointer' : 'not-allowed',
+                          transition: 'all 0.2s',
+                          boxShadow: selectedInstallers[req._id] ? '0 4px 12px rgba(39,174,96,0.3)' : 'none'
+                        }}
+                        onMouseOver={(e) => {
+                          if (selectedInstallers[req._id]) {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 6px 16px rgba(39,174,96,0.4)';
+                          }
+                        }}
+                        onMouseOut={(e) => {
+                          if (selectedInstallers[req._id]) {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 4px 12px rgba(39,174,96,0.3)';
+                          }
+                        }}
+                      >
+                        Assign
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}

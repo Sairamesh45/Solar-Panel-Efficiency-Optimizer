@@ -40,6 +40,8 @@ export const CHART_COLORS = {
   shading: '#9b59b6',
   age: '#e74c3c',
   temperature: '#f39c12',
+  orientation: '#3498db',
+  tilt: '#1abc9c',
 };
 
 export const API_ENDPOINTS = {
