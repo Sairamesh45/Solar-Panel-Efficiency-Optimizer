@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const { user, logout } = useAuthContext();
@@ -96,7 +97,11 @@ const Navbar = () => {
               <NavLink to="/analyze">🔍 Analyze</NavLink>
               <NavLink to="/dashboard">📊 Dashboard</NavLink>
               <NavLink to="/trends">📈 Trends</NavLink>
+              <NavLink to="/alerts">🔔 Alerts</NavLink>
               {user.role === 'Admin' && <NavLink to="/admin">🛡️ Admin</NavLink>}
+              
+              {/* Notification Bell */}
+              <NotificationBell />
               
               <div style={{
                 marginLeft: '15px',

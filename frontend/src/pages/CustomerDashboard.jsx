@@ -17,6 +17,304 @@ import RequestMaintenanceModal from '../components/customer/RequestMaintenanceMo
 import RequestPanelModal from '../components/customer/RequestPanelModal';
 import WeatherForecast from '../components/solar/WeatherForecast';
 import axiosInstance from '../api/axiosInstance';
+import { getUserAlerts, resolveAlert, deleteAlert } from '../api/alert.api';
+import { AlertCircle, AlertTriangle, Info, CheckCircle, Trash2, RefreshCw } from 'lucide-react';
+
+// Alerts Section Component
+const AlertsSection = ({ userId }) => {
+  const [alerts, setAlerts] = useState([]);
+  const [alertPanels, setAlertPanels] = useState([]);
+  const [selectedPanel, setSelectedPanel] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterSeverity, setFilterSeverity] = useState('all');
+  const [filterResolved, setFilterResolved] = useState('false');
+  const [stats, setStats] = useState({ total: 0, critical: 0, warning: 0, info: 0, unresolved: 0 });
+
+  useEffect(() => {
+    const fetchPanels = async () => {
+      try {
+        const response = await axiosInstance.get(`/panel?userId=${userId}`);
+        setAlertPanels(response.data.data || []);
+      } catch (error) {
+        console.error('Error fetching panels:', error);
+      }
+    };
+    
+    if (userId) {
+      fetchPanels();
+    }
+  }, [userId]);
+
+  const fetchAlerts = async () => {
+    try {
+      setLoading(true);
+      const params = {
+        resolved: filterResolved,
+        ...(filterCategory !== 'all' && { category: filterCategory }),
+        ...(filterSeverity !== 'all' && { severity: filterSeverity }),
+        limit: 100
+      };
+      
+      const response = await getUserAlerts(userId, params);
+      if (response.data.success) {
+        let alertsData = response.data.data || [];
+        
+        if (selectedPanel !== 'all') {
+          alertsData = alertsData.filter(alert => 
+            alert.panelId?._id === selectedPanel || alert.panelId === selectedPanel
+          );
+        }
+        
+        setAlerts(alertsData);
+        
+        const newStats = {
+          total: alertsData.length,
+          critical: alertsData.filter(a => a.severity === 'critical').length,
+          warning: alertsData.filter(a => a.severity === 'warning').length,
+          info: alertsData.filter(a => a.severity === 'info').length,
+          unresolved: alertsData.filter(a => !a.isResolved).length
+        };
+        setStats(newStats);
+      }
+    } catch (error) {
+      console.error('Error fetching alerts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchAlerts();
+    }
+  }, [userId, filterCategory, filterSeverity, filterResolved, selectedPanel]);
+
+  const handleResolve = async (alertId) => {
+    try {
+      await resolveAlert(alertId);
+      fetchAlerts();
+    } catch (error) {
+      console.error('Error resolving alert:', error);
+    }
+  };
+
+  const handleDelete = async (alertId) => {
+    if (!window.confirm('Delete this alert?')) return;
+    try {
+      await deleteAlert(alertId);
+      fetchAlerts();
+    } catch (error) {
+      console.error('Error deleting alert:', error);
+    }
+  };
+
+  const getSeverityIcon = (severity) => {
+    switch (severity) {
+      case 'critical': return <AlertCircle size={20} color="#e74c3c" />;
+      case 'warning': return <AlertTriangle size={20} color="#f39c12" />;
+      case 'info': return <Info size={20} color="#3498db" />;
+      default: return <Info size={20} color="#95a5a6" />;
+    }
+  };
+
+  const getSeverityBadgeStyle = (severity) => {
+    switch (severity) {
+      case 'critical': return { background: '#e74c3c', color: 'white' };
+      case 'warning': return { background: '#f39c12', color: 'white' };
+      case 'info': return { background: '#3498db', color: 'white' };
+      default: return { background: '#95a5a6', color: 'white' };
+    }
+  };
+
+  const getCategoryBadgeStyle = (category) => {
+    const colors = { anomaly: '#9b59b6', performance: '#e67e22', maintenance: '#16a085', cleaning: '#27ae60', system: '#34495e' };
+    return { background: colors[category] || '#95a5a6', color: 'white' };
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  return (
+    <div>
+      <h2 style={{ fontSize: '2rem', color: '#2c3e50', marginBottom: '15px' }}>🔔 Alert Center</h2>
+
+      {/* Enhanced Alert Conditions */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+        padding: '25px 30px', 
+        borderRadius: '12px', 
+        marginBottom: '25px', 
+        color: 'white',
+        boxShadow: '0 8px 20px rgba(102, 126, 234, 0.35)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+          <div style={{ 
+            background: 'rgba(255,255,255,0.2)', 
+            padding: '10px', 
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <span style={{ fontSize: '1.5rem' }}>📋</span>
+          </div>
+          <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '600' }}>Alert Trigger Conditions</h3>
+        </div>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+          {[
+            { icon: '🌡️', label: 'Temperature Alert', condition: 'Temp > 65°C', severity: 'Critical' },
+            { icon: '💨', label: 'Dust Accumulation', condition: 'Dust > 100', severity: 'Warning' },
+            { icon: '🌥️', label: 'Shading Issue', condition: 'Shading > 30%', severity: 'Info' },
+            { icon: '📉', label: 'Efficiency Drop', condition: 'Drop > 15%', severity: 'Critical' },
+            { icon: '🧹', label: 'Cleaning Required', condition: 'Loss > 8%', severity: 'Warning' },
+            { icon: '🔍', label: 'ML Anomaly', condition: 'Confidence > 60%', severity: 'AI-Based' }
+          ].map((threshold, idx) => (
+            <div key={idx} style={{ 
+              background: 'rgba(255,255,255,0.15)', 
+              padding: '15px', 
+              borderRadius: '10px',
+              border: '1px solid rgba(255,255,255,0.2)',
+              backdropFilter: 'blur(10px)',
+              transition: 'transform 0.2s, background 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.25)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '1.5rem' }}>{threshold.icon}</span>
+                <span style={{ fontSize: '14px', fontWeight: '600' }}>{threshold.label}</span>
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>{threshold.condition}</div>
+              <div style={{ fontSize: '12px', opacity: 0.9 }}>Severity: {threshold.severity}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+        {[
+          { label: 'Total', value: stats.total, color: '#2c3e50', bg: '#f8f9fa' },
+          { label: 'Critical', value: stats.critical, color: '#e74c3c', bg: '#fee' },
+          { label: 'Warning', value: stats.warning, color: '#f39c12', bg: '#fef9e7' },
+          { label: 'Info', value: stats.info, color: '#3498db', bg: '#ebf5fb' },
+          { label: 'Unresolved', value: stats.unresolved, color: '#27ae60', bg: '#d5f4e6' }
+        ].map(stat => (
+          <div key={stat.label} style={{ background: stat.bg, padding: '15px', borderRadius: '8px', textAlign: 'center', border: `1px solid ${stat.color}20` }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: stat.color }}>{stat.value}</div>
+            <div style={{ fontSize: '12px', color: '#7f8c8d', marginTop: '4px' }}>{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div style={{ background: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #e0e0e0', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <span style={{ fontWeight: '600', color: '#2c3e50', fontSize: '14px' }}>🔍</span>
+        
+        <select value={selectedPanel} onChange={(e) => setSelectedPanel(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', minWidth: '150px' }}>
+          <option value="all">All Panels</option>
+          {alertPanels.map(panel => (
+            <option key={panel._id} value={panel._id}>{panel.name}</option>
+          ))}
+        </select>
+
+        <select value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}>
+          <option value="all">All Severities</option>
+          <option value="critical">Critical</option>
+          <option value="warning">Warning</option>
+          <option value="info">Info</option>
+        </select>
+
+        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}>
+          <option value="all">All Categories</option>
+          <option value="anomaly">Anomaly</option>
+          <option value="performance">Performance</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="cleaning">Cleaning</option>
+          <option value="system">System</option>
+        </select>
+
+        <select value={filterResolved} onChange={(e) => setFilterResolved(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}>
+          <option value="false">Unresolved</option>
+          <option value="true">Resolved</option>
+          <option value="">All</option>
+        </select>
+
+        <button onClick={fetchAlerts} style={{ marginLeft: 'auto', background: '#3498db', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px' }}>
+          <RefreshCw size={14} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Alert List */}
+      <div style={{ background: 'white', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+        {loading ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#95a5a6' }}>Loading alerts...</div>
+        ) : alerts.length === 0 ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#95a5a6' }}>
+            <CheckCircle size={48} style={{ marginBottom: '12px', opacity: 0.3 }} />
+            <h3 style={{ margin: '0 0 8px', color: '#7f8c8d' }}>No alerts found</h3>
+            <p style={{ margin: 0, fontSize: '13px' }}>Adjust filters or wait for alerts to be generated</p>
+          </div>
+        ) : (
+          <div>
+            {alerts.map((alert, index) => (
+              <div key={alert._id} style={{ padding: '15px', borderBottom: index < alerts.length - 1 ? '1px solid #f0f0f0' : 'none', opacity: alert.isResolved ? 0.6 : 1, borderLeft: `4px solid ${getSeverityBadgeStyle(alert.severity).background}` }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  <div style={{ marginTop: '2px' }}>{getSeverityIcon(alert.severity)}</div>
+                  
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ ...getSeverityBadgeStyle(alert.severity), padding: '3px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase' }}>
+                        {alert.severity}
+                      </span>
+                      <span style={{ ...getCategoryBadgeStyle(alert.category), padding: '3px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: '600' }}>
+                        {alert.category}
+                      </span>
+                      {alert.isResolved && (
+                        <span style={{ background: '#27ae60', color: 'white', padding: '3px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: '600' }}>
+                          ✓ RESOLVED
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div style={{ fontSize: '14px', color: '#2c3e50', marginBottom: '8px', fontWeight: '500' }}>{alert.message}</div>
+                    
+                    <div style={{ fontSize: '12px', color: '#7f8c8d', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <span>📅 {formatDate(alert.createdAt)}</span>
+                      {alert.panelId?.name && <span>🔆 {alert.panelId.name}</span>}
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {!alert.isResolved && (
+                      <button onClick={() => handleResolve(alert._id)} style={{ background: '#27ae60', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <CheckCircle size={12} />
+                        Resolve
+                      </button>
+                    )}
+                    <button onClick={() => handleDelete(alert._id)} style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Trash2 size={12} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const CustomerDashboard = () => {
   const navigate = useNavigate();
@@ -202,6 +500,7 @@ const CustomerDashboard = () => {
             { id: 'panelRequests', icon: '📋', label: 'Panel Requests' },
             { id: 'maintenance', icon: '🔧', label: 'Maintenance' },
             { id: 'recurring', icon: '🔄', label: 'Recurring Schedules' },
+            { id: 'alerts', icon: '🔔', label: 'Alerts' },
             { id: 'sensors', icon: '📈', label: 'Sensor Trends' },
             { id: 'analysis', icon: '🧠', label: 'Analysis History' },
             { id: 'comparison', icon: '📊', label: 'Compare Analyses' },
@@ -792,6 +1091,11 @@ const CustomerDashboard = () => {
               <h2 style={{ fontSize: '2rem', color: '#2c3e50', marginBottom: '20px' }}>🔄 Recurring Maintenance</h2>
               <RecurringMaintenanceManager />
             </div>
+          )}
+
+          {/* Alerts Section */}
+          {activeSection === 'alerts' && (
+            <AlertsSection userId={user?._id} />
           )}
 
           {/* Analysis Comparison Section */}

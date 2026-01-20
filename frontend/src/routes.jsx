@@ -13,6 +13,7 @@ import SolarAnalysis from './pages/SolarAnalysis';
 import AdminDashboard from './pages/AdminDashboard';
 import TrendsAnalysis from './pages/TrendsAnalysis';
 import PanelComparison from './pages/PanelComparison';
+import AlertsPage from './pages/AlertsPage';
 
 const AppRoutes = () => {
   return (
@@ -30,6 +31,7 @@ const AppRoutes = () => {
         <Route path="/analyze" element={<SolarAnalysis />} />
         <Route path="/trends" element={<TrendsAnalysis />} />
         <Route path="/compare-panels" element={<PanelComparison />} />
+        <Route path="/alerts" element={<AlertsPage />} />
       </Route>
 
       {/* Admin Only Routes */}
