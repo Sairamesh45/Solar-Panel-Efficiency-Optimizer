@@ -14,6 +14,8 @@ router.post('/handle', controller.handleRequest);
 router.post('/assign', controller.assignInstaller);
 // Schedule appointment with specific date/time
 router.post('/schedule-appointment', controller.scheduleAppointment);
+// Add cost estimation
+router.post('/cost-estimate', controller.addCostEstimate);
 // Update maintenance status (for installers)
 router.post('/update', controller.updateMaintenanceStatus);
 

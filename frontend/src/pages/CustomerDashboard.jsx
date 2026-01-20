@@ -9,6 +9,8 @@ import TrendsAnalysis from './TrendsAnalysis';
 import MyPanels from '../components/customer/MyPanels';
 import MyPanelRequests from '../components/customer/MyPanelRequests';
 import MyMaintenanceRequests from '../components/customer/MyMaintenanceRequests';
+import HistoricalAnalysisComparison from '../components/customer/HistoricalAnalysisComparison';
+import RecurringMaintenanceManager from '../components/installer/RecurringMaintenanceManager';
 import { exportToCSV } from '../utils/exportUtils';
 import { getSensorData } from '../api/sensor.api';
 import RequestMaintenanceModal from '../components/customer/RequestMaintenanceModal';
@@ -199,8 +201,10 @@ const CustomerDashboard = () => {
             { id: 'panels', icon: '☀️', label: 'My Panels' },
             { id: 'panelRequests', icon: '📋', label: 'Panel Requests' },
             { id: 'maintenance', icon: '🔧', label: 'Maintenance' },
+            { id: 'recurring', icon: '🔄', label: 'Recurring Schedules' },
             { id: 'sensors', icon: '📈', label: 'Sensor Trends' },
             { id: 'analysis', icon: '🧠', label: 'Analysis History' },
+            { id: 'comparison', icon: '📊', label: 'Compare Analyses' },
             { id: 'trends', icon: '📉', label: 'System Trends' },
           ].map(section => (
               <button
@@ -774,6 +778,31 @@ const CustomerDashboard = () => {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Recurring Maintenance Section */}
+          {activeSection === 'recurring' && (
+            <div style={{ 
+              backgroundColor: 'white',
+              padding: '30px',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+            }}>
+              <h2 style={{ fontSize: '2rem', color: '#2c3e50', marginBottom: '20px' }}>🔄 Recurring Maintenance</h2>
+              <RecurringMaintenanceManager />
+            </div>
+          )}
+
+          {/* Analysis Comparison Section */}
+          {activeSection === 'comparison' && (
+            <div style={{ 
+              backgroundColor: 'white',
+              padding: '30px',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+            }}>
+              <HistoricalAnalysisComparison />
             </div>
           )}
 

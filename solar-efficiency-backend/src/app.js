@@ -31,6 +31,9 @@ app.use('/api/panel', require('./routes/panel.routes'));
 app.use('/api/panel-request', require('./routes/panelRequest.routes'));
 app.use('/api/trends', require('./routes/trends.routes'));
 app.use('/api/weather', require('./routes/weather.routes'));
+app.use('/api/recurring-maintenance', require('./routes/recurringMaintenance.routes'));
+app.use('/api/parts-catalog', require('./routes/partsCatalog.routes'));
+app.use('/api/analysis-history', require('./routes/analysisHistory.routes'));
 
 // Error Handler
 app.use(errorHandler);

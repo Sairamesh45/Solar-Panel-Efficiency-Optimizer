@@ -194,7 +194,58 @@ const MyMaintenanceRequests = ({ userId }) => {
                     </p>
                   </div>
                 )}
+
+                {req.costEstimate && (
+                  <div style={{ marginTop: '10px', color: '#2c3e50', fontSize: '0.95rem' }}>
+                    <strong>Cost Estimate:</strong> ₹{req.costEstimate.laborCost.toLocaleString()} + Parts = ₹{(req.costEstimate.laborCost + req.costEstimate.parts.reduce((sum, part) => sum + (part.unitPrice * part.quantity), 0)).toLocaleString()}
+                  </div>
+                )}
               </div>
+
+              {req.costEstimate && req.costEstimate.parts && req.costEstimate.parts.length > 0 && (
+                <div style={{ 
+                  padding: '14px', 
+                  background: '#f9f9f9', 
+                  borderRadius: '10px', 
+                  border: '1px solid #e0e0e0' 
+                }}>
+                  <label style={{ fontSize: '0.72rem', color: '#7f8c8d', fontWeight: '700', textTransform: 'uppercase' }}>
+                    Invoice
+                  </label>
+                  <div style={{ marginTop: '10px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #ddd' }}>Part</th>
+                          <th style={{ textAlign: 'center', padding: '8px', borderBottom: '1px solid #ddd' }}>Quantity</th>
+                          <th style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #ddd' }}>Price (₹)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {req.costEstimate.parts.map((part, index) => (
+                          <tr key={index}>
+                            <td style={{ padding: '8px', borderBottom: '1px solid #f1f1f1' }}>{part.name}</td>
+                            <td style={{ textAlign: 'center', padding: '8px', borderBottom: '1px solid #f1f1f1' }}>{part.quantity}</td>
+                            <td style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #f1f1f1' }}>{(part.unitPrice * part.quantity).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                        <tr>
+                          <td style={{ padding: '8px', fontWeight: 'bold' }}>Labor Cost</td>
+                          <td></td>
+                          <td style={{ textAlign: 'right', padding: '8px', fontWeight: 'bold' }}>₹{req.costEstimate.laborCost.toLocaleString()}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '8px', fontWeight: 'bold' }}>Total</td>
+                          <td></td>
+                          <td style={{ textAlign: 'right', padding: '8px', fontWeight: 'bold', color: '#27ae60' }}>
+                            ₹{(req.costEstimate.laborCost + req.costEstimate.parts.reduce((sum, part) => sum + (part.unitPrice * part.quantity), 0)).toLocaleString()}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               {req.statusTimeline && req.statusTimeline.length > 0 && (
                 <div style={{ 

@@ -22,6 +22,22 @@ const MaintenanceSchema = new mongoose.Schema({
   scheduledDateTime: Date, // Specific date and time for the appointment
   estimatedCompletionTime: Date, // Expected completion time (ETA)
   actualCompletionTime: Date, // When it was actually completed
+  // Cost estimation fields
+  costEstimate: {
+    laborCost: { type: Number, default: 0 },
+    partsCost: { type: Number, default: 0 },
+    totalCost: { type: Number, default: 0 },
+    currency: { type: String, default: 'INR' },
+    parts: [{
+      partId: { type: mongoose.Schema.Types.ObjectId, ref: 'PartsCatalog' },
+      name: String,
+      quantity: { type: Number, default: 1 },
+      unitPrice: Number,
+      totalPrice: Number
+    }],
+    estimatedAt: Date,
+    notes: String
+  },
   createdAt: { type: Date, default: Date.now }
 });
 

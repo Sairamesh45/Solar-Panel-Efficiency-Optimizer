@@ -103,3 +103,21 @@ exports.updateMaintenanceStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+// Add cost estimation to a maintenance request
+exports.addCostEstimate = async (req, res, next) => {
+  try {
+    const { id, laborCost, parts, currency, notes } = req.body;
+    if (!id) {
+      return res.status(400).json({ success: false, message: 'Maintenance ID is required' });
+    }
+    const updated = await maintenanceService.addCostEstimate(id, { laborCost, parts, currency, notes });
+    res.status(200).json({ 
+      success: true, 
+      data: updated,
+      message: 'Cost estimate added successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

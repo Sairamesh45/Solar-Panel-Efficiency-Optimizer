@@ -5,6 +5,7 @@ import TrendsAnalysis from './TrendsAnalysis';
 import ScheduleMaintenanceModal from '../components/installer/ScheduleMaintenanceModal';
 import InstallerMaintenanceRequests from '../components/installer/InstallerMaintenanceRequests';
 import InstallerPanelRequests from '../components/installer/InstallerPanelRequests';
+import PartsCatalogManager from '../components/installer/PartsCatalogManager';
 import axiosInstance from '../api/axiosInstance';
 
 const InstallerDashboard = () => {
@@ -194,6 +195,7 @@ const InstallerDashboard = () => {
             { id: 'overview', icon: '📊', label: 'Fleet Overview' },
             { id: 'systems', icon: '⚙️', label: 'System Performance' },
             { id: 'maintenance', icon: '🔧', label: 'Maintenance Requests' },
+            { id: 'parts', icon: '🧰', label: 'Parts Catalog' },
             { id: 'panelRequests', icon: '📋', label: 'Panel Requests' },
             { id: 'trends', icon: '📉', label: 'System Trends' },
           ].map(section => (
@@ -374,6 +376,14 @@ const InstallerDashboard = () => {
           <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', marginBottom: '30px' }}>
             <h2 style={{ fontSize: '2rem', color: '#2c3e50', marginBottom: '20px' }}>🔧 Maintenance Requests</h2>
             <InstallerMaintenanceRequests />
+          </div>
+        )}
+
+        {/* Parts Catalog Section */}
+        {activeSection === 'parts' && (
+          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', marginBottom: '30px' }}>
+            <h2 style={{ fontSize: '2rem', color: '#2c3e50', marginBottom: '20px' }}>🧰 Parts Catalog</h2>
+            <PartsCatalogManager />
           </div>
         )}
 

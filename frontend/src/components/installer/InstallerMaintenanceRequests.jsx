@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../api/axiosInstance';
 import ScheduleMaintenanceModal from '../customer/ScheduleMaintenanceModal';
+import CostEstimationModal from './CostEstimationModal';
 
 const InstallerMaintenanceRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -8,6 +9,7 @@ const InstallerMaintenanceRequests = () => {
   const [updateMsg, setUpdateMsg] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showCostModal, setShowCostModal] = useState(false);
 
   useEffect(() => {
     fetchRequests();
@@ -59,6 +61,20 @@ const InstallerMaintenanceRequests = () => {
                 </div>
               )}
               
+              {/* Cost Estimate Info */}
+              {req.costEstimate && req.costEstimate.totalCost > 0 && (
+                <div style={{ marginTop: 12, padding: 12, background: '#e8f5e9', borderRadius: 8, border: '1px solid #a5d6a7' }}>
+                  <h4 style={{ margin: '0 0 8px 0', color: '#2e7d32', fontSize: 14 }}>💰 Cost Estimate</h4>
+                  <div style={{ display: 'flex', gap: 16, fontSize: 13 }}>
+                    <div><strong>Parts:</strong> ₹{req.costEstimate.partsCost?.toLocaleString()}</div>
+                    <div><strong>Labor:</strong> ₹{req.costEstimate.laborCost?.toLocaleString()}</div>
+                    <div style={{ fontWeight: 700, color: '#2e7d32' }}>
+                      <strong>Total:</strong> ₹{req.costEstimate.totalCost?.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Action Buttons */}
               {req.status !== 'completed' && (
                 <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -79,6 +95,24 @@ const InstallerMaintenanceRequests = () => {
                     }}
                   >
                     {req.scheduledDateTime ? '📅 Reschedule' : '📅 Schedule'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedRequest(req);
+                      setShowCostModal(true);
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#9b59b6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: '600'
+                    }}
+                  >
+                    {req.costEstimate?.totalCost > 0 ? '💰 Update Cost' : '💰 Add Cost'}
                   </button>
                 </div>
               )}
@@ -146,6 +180,23 @@ const InstallerMaintenanceRequests = () => {
               req._id === updatedRequest._id ? updatedRequest : req
             ));
             setUpdateMsg('Appointment scheduled successfully!');
+            setTimeout(() => setUpdateMsg(''), 2000);
+          }}
+        />
+      )}
+
+      {showCostModal && selectedRequest && (
+        <CostEstimationModal
+          maintenanceRequest={selectedRequest}
+          onClose={() => {
+            setShowCostModal(false);
+            setSelectedRequest(null);
+          }}
+          onSuccess={(updatedRequest) => {
+            setRequests(prev => prev.map(req => 
+              req._id === updatedRequest._id ? updatedRequest : req
+            ));
+            setUpdateMsg('Cost estimate saved successfully!');
             setTimeout(() => setUpdateMsg(''), 2000);
           }}
         />

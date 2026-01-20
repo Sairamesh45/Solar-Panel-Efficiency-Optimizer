@@ -68,3 +68,32 @@ exports.getAssignedRequests = async () => {
   // Adjust query as needed for your app logic
   return Maintenance.find({ installerId: { $exists: true, $ne: null }, status: { $ne: 'completed' } }).sort({ scheduledDate: -1 });
 };
+
+// Add cost estimation to a maintenance request
+exports.addCostEstimate = async (id, costData) => {
+  const { laborCost, parts, notes } = costData;
+  
+  // Calculate parts cost
+  let partsCost = 0;
+  const partsWithTotal = (parts || []).map(part => {
+    const totalPrice = part.quantity * part.unitPrice;
+    partsCost += totalPrice;
+    return { ...part, totalPrice };
+  });
+  
+  const totalCost = (laborCost || 0) + partsCost;
+  
+  const update = {
+    costEstimate: {
+      laborCost: laborCost || 0,
+      partsCost,
+      totalCost,
+      currency: costData.currency || 'INR',
+      parts: partsWithTotal,
+      estimatedAt: new Date(),
+      notes
+    }
+  };
+  
+  return Maintenance.findByIdAndUpdate(id, update, { new: true }).populate('panelId', 'name location');
+};
