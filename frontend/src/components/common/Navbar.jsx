@@ -51,7 +51,7 @@ const Navbar = () => {
   return (
     <nav style={{ 
       padding: '1rem 2rem', 
-      background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+      background: '#0F172A',
       color: 'white', 
       boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
       position: 'sticky',

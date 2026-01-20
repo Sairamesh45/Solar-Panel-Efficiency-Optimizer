@@ -9,8 +9,8 @@ const Home = () => {
   return (
     <div style={{ 
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white'
+      background: 'linear-gradient(135deg, #0b0620 0%, #1a0f2f 50%, #2f1242 100%)',
+      color: '#E9E6FF'
     }}>
       <Navbar />
       {/* Hero Section */}
@@ -25,14 +25,15 @@ const Home = () => {
             fontSize: '4rem', 
             marginBottom: '20px',
             fontWeight: '800',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.2)'
+            textShadow: '2px 2px 8px rgba(139, 92, 246, 0.3)',
+            color: '#E9E6FF'
           }}>
             ☀️ Solar Panel Efficiency Optimizer
           </h1>
           <p style={{ 
             fontSize: '1.5rem', 
             marginBottom: '40px',
-            opacity: 0.95,
+            color: '#BFB4E6',
             maxWidth: '800px',
             margin: '0 auto 40px',
             lineHeight: '1.8'
@@ -99,22 +100,22 @@ const Home = () => {
                   <button style={{ 
                     padding: '18px 40px', 
                     fontSize: '1.3rem',
-                    backgroundColor: '#27ae60',
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #c08cff 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '50px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+                    boxShadow: '0 8px 20px rgba(139, 92, 246, 0.4)',
                     transition: 'all 0.3s'
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.4)';
+                    e.currentTarget.style.boxShadow = '0 12px 28px rgba(139, 92, 246, 0.6)';
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.3)';
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.4)';
                   }}>
                     🔑 Sign In
                   </button>
@@ -123,9 +124,9 @@ const Home = () => {
                   <button style={{ 
                     padding: '18px 40px', 
                     fontSize: '1.3rem',
-                    backgroundColor: 'rgba(255,255,255,0.2)',
-                    color: 'white',
-                    border: '2px solid white',
+                    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                    color: '#E9E6FF',
+                    border: '2px solid #8b5cf6',
                     borderRadius: '50px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
@@ -133,11 +134,11 @@ const Home = () => {
                     transition: 'all 0.3s'
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.3)';
+                    e.currentTarget.style.backgroundColor = 'rgba(139, 92, 246, 0.25)';
                     e.currentTarget.style.transform = 'translateY(-3px)';
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)';
+                    e.currentTarget.style.backgroundColor = 'rgba(139, 92, 246, 0.15)';
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}>
                     📝 Get Started Free
@@ -151,8 +152,7 @@ const Home = () => {
 
       {/* Features Section */}
       <div style={{
-        background: 'white',
-        color: '#2c3e50',
+        background: 'rgba(11, 6, 32, 0.5)',
         padding: '80px 20px'
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -160,7 +160,7 @@ const Home = () => {
             textAlign: 'center', 
             fontSize: '2.5rem', 
             marginBottom: '60px',
-            color: '#2c3e50'
+            color: '#E9E6FF'
           }}>
             🌟 Why Choose Our Platform?
           </h2>
@@ -206,15 +206,15 @@ const Home = () => {
 
       {/* How It Works Section */}
       <div style={{
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-        padding: '80px 20px',
-        color: '#2c3e50'
+        background: 'rgba(26, 15, 47, 0.5)',
+        padding: '80px 20px'
       }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <h2 style={{ 
             textAlign: 'center', 
             fontSize: '2.5rem', 
-            marginBottom: '60px'
+            marginBottom: '60px',
+            color: '#E9E6FF'
           }}>
             🎯 How It Works
           </h2>
@@ -246,37 +246,36 @@ const Home = () => {
 
       {/* CTA Section */}
       <div style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
+        background: 'rgba(11, 6, 32, 0.5)',
         padding: '80px 20px',
         textAlign: 'center'
       }}>
-        <h2 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '2.5rem', marginBottom: '20px', color: '#E9E6FF' }}>
           Ready to Optimize Your Solar Investment?
         </h2>
-        <p style={{ fontSize: '1.3rem', marginBottom: '40px', opacity: 0.9 }}>
+        <p style={{ fontSize: '1.3rem', marginBottom: '40px', color: '#BFB4E6' }}>
           Join thousands of users maximizing their solar efficiency
         </p>
         <Link to={user ? "/analyze" : "/register"} style={{ textDecoration: 'none' }}>
           <button style={{ 
             padding: '20px 50px', 
             fontSize: '1.4rem',
-            backgroundColor: '#27ae60',
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #c08cff 100%)',
             color: 'white',
             border: 'none',
             borderRadius: '50px',
             fontWeight: 'bold',
             cursor: 'pointer',
-            boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+            boxShadow: '0 8px 20px rgba(139, 92, 246, 0.4)',
             transition: 'all 0.3s'
           }}
           onMouseEnter={e => {
             e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.4)';
+            e.currentTarget.style.boxShadow = '0 12px 28px rgba(139, 92, 246, 0.6)';
           }}
           onMouseLeave={e => {
             e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.3)';
+            e.currentTarget.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.4)';
           }}>
             {user ? '🚀 Start Analysis Now' : '🎉 Get Started Free'}
           </button>
@@ -285,12 +284,12 @@ const Home = () => {
 
       {/* Footer */}
       <div style={{
-        background: '#2c3e50',
-        color: 'white',
+        background: 'rgba(11, 6, 32, 0.8)',
+        borderTop: '1px solid rgba(139, 92, 246, 0.2)',
         padding: '30px 20px',
         textAlign: 'center'
       }}>
-        <p style={{ margin: 0, opacity: 0.8 }}>
+        <p style={{ margin: 0, color: '#9D8FCC' }}>
           © 2024 Solar Panel Efficiency Optimizer. Empowering renewable energy decisions with AI.
         </p>
       </div>
@@ -301,10 +300,12 @@ const Home = () => {
 const FeatureCard = ({ icon, title, description, link, linkText }) => {
   const cardContent = (
     <div style={{
-      background: 'white',
+      background: 'rgba(255, 255, 255, 0.05)',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
       padding: '30px',
       borderRadius: '15px',
-      boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+      boxShadow: '0 8px 32px rgba(139, 92, 246, 0.1)',
       textAlign: 'center',
       transition: 'all 0.3s',
       cursor: 'pointer',
@@ -314,24 +315,24 @@ const FeatureCard = ({ icon, title, description, link, linkText }) => {
     }}
     onMouseEnter={e => {
       e.currentTarget.style.transform = 'translateY(-10px)';
-      e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.15)';
+      e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.3)';
     }}
     onMouseLeave={e => {
       e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.08)';
+      e.currentTarget.style.boxShadow = '0 8px 32px rgba(139, 92, 246, 0.1)';
     }}>
       <div style={{ fontSize: '3rem', marginBottom: '15px' }}>{icon}</div>
-      <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', color: '#2c3e50' }}>
+      <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', color: '#E9E6FF', fontWeight: '600' }}>
         {title}
       </h3>
-      <p style={{ color: '#7f8c8d', lineHeight: '1.6', fontSize: '1rem', flex: 1 }}>
+      <p style={{ color: '#BFB4E6', lineHeight: '1.6', fontSize: '1rem', flex: 1 }}>
         {description}
       </p>
       {link && linkText && (
         <Link to={link} style={{ 
           marginTop: '15px',
           padding: '10px 20px',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #8b5cf6 0%, #c08cff 100%)',
           color: 'white',
           textDecoration: 'none',
           borderRadius: '25px',
@@ -354,24 +355,26 @@ const StepCard = ({ number, title, description }) => (
     display: 'flex',
     gap: '25px',
     alignItems: 'start',
-    background: 'white',
+    background: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     padding: '30px',
     borderRadius: '15px',
-    boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+    boxShadow: '0 8px 32px rgba(139, 92, 246, 0.1)',
     transition: 'all 0.3s'
   }}
   onMouseEnter={e => {
     e.currentTarget.style.transform = 'translateX(10px)';
-    e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.12)';
+    e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.3)';
   }}
   onMouseLeave={e => {
     e.currentTarget.style.transform = 'translateX(0)';
-    e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.08)';
+    e.currentTarget.style.boxShadow = '0 8px 32px rgba(139, 92, 246, 0.1)';
   }}>
     <div style={{
       minWidth: '60px',
       height: '60px',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #8b5cf6 0%, #c08cff 100%)',
       color: 'white',
       borderRadius: '50%',
       display: 'flex',
@@ -379,15 +382,15 @@ const StepCard = ({ number, title, description }) => (
       justifyContent: 'center',
       fontSize: '1.8rem',
       fontWeight: 'bold',
-      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
+      boxShadow: '0 4px 12px rgba(139, 92, 246, 0.4)'
     }}>
       {number}
     </div>
     <div>
-      <h3 style={{ fontSize: '1.5rem', marginBottom: '10px', color: '#2c3e50' }}>
+      <h3 style={{ fontSize: '1.5rem', marginBottom: '10px', color: '#E9E6FF', fontWeight: '600' }}>
         {title}
       </h3>
-      <p style={{ color: '#7f8c8d', lineHeight: '1.6', fontSize: '1.05rem', margin: 0 }}>
+      <p style={{ color: '#BFB4E6', lineHeight: '1.6', fontSize: '1.05rem', margin: 0 }}>
         {description}
       </p>
     </div>
