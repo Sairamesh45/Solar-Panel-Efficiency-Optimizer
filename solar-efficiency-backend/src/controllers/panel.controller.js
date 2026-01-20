@@ -15,11 +15,13 @@ exports.getPanels = async (req, res, next) => {
 
 exports.createPanel = async (req, res, next) => {
   try {
-    const { userId, name, location, wattage, brand, installationDate } = req.body;
+    const { userId, name, location, latitude, longitude, wattage, brand, installationDate } = req.body;
     const panel = new Panel({
       userId,
       name,
       location,
+      latitude: latitude || 19.07, // Default to Mumbai if not provided
+      longitude: longitude || 72.87, // Default to Mumbai if not provided
       installationDate: installationDate || new Date(),
       specifications: { wattage, brand }
     });

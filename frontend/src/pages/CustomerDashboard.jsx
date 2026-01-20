@@ -13,6 +13,7 @@ import { exportToCSV } from '../utils/exportUtils';
 import { getSensorData } from '../api/sensor.api';
 import RequestMaintenanceModal from '../components/customer/RequestMaintenanceModal';
 import RequestPanelModal from '../components/customer/RequestPanelModal';
+import WeatherForecast from '../components/solar/WeatherForecast';
 import axiosInstance from '../api/axiosInstance';
 
 const CustomerDashboard = () => {
@@ -538,6 +539,11 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
               )}
+
+              {/* 7-Day Weather Forecast Section */}
+              <div style={{ marginTop: '30px' }}>
+                <WeatherForecast panelId={panels[0]?._id} />
+              </div>
             </div>
           )}
 

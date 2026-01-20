@@ -30,6 +30,7 @@ app.use('/api/maintenance', require('./routes/maintenance.routes'));
 app.use('/api/panel', require('./routes/panel.routes'));
 app.use('/api/panel-request', require('./routes/panelRequest.routes'));
 app.use('/api/trends', require('./routes/trends.routes'));
+app.use('/api/weather', require('./routes/weather.routes'));
 
 // Error Handler
 app.use(errorHandler);
