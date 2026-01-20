@@ -333,7 +333,23 @@ const CustomerDashboard = () => {
                 </div>
                 <div style={{ backgroundColor: '#fce4ec', padding: '25px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                   <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>💰</div>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#e91e63', marginBottom: '5px' }}>₹{latestAnalysis?.analysis?.financialAnalysis?.monthly_savings || 0}</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#e91e63', marginBottom: '5px' }}>
+                    {(() => {
+                      // Prefer stored monthly_savings, then yearly_savings/12, then estimate from annual generation and tariff
+                      const fin = latestAnalysis?.analysis?.financials;
+                      const monthlyFromFin = fin?.monthly_savings;
+                      const yearlyFromFin = fin?.yearly_savings;
+                      if (monthlyFromFin && monthlyFromFin > 0) return `₹${monthlyFromFin.toLocaleString()}`;
+                      if (yearlyFromFin && yearlyFromFin > 0) return `₹${Math.round(yearlyFromFin / 12).toLocaleString()}`;
+                      const annualGen = latestAnalysis?.analysis?.systemRecommendation?.annual_generation;
+                      const tariff = latestAnalysis?.requestId?.inputData?.energy?.tariff || latestAnalysis?.analysis?.input_energy_tariff;
+                      if (annualGen && tariff) {
+                        const estMonthly = Math.round((annualGen * tariff) / 12);
+                        return `₹${estMonthly.toLocaleString()}`;
+                      }
+                      return '₹0';
+                    })()}
+                  </div>
                   <div style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>Est. Monthly Savings</div>
                 </div>
               </div>
@@ -395,38 +411,130 @@ const CustomerDashboard = () => {
                       <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
                         <div style={{ color: '#7f8c8d', fontSize: '0.85rem', marginBottom: '5px' }}>Energy Output</div>
                         <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3498db' }}>
-                          {latestAnalysis.analysis?.performanceAnalysis?.monthly_kwh || 0} kWh
+                          {latestAnalysis.analysis?.systemRecommendation?.annual_generation 
+                            ? Math.round(latestAnalysis.analysis.systemRecommendation.annual_generation / 12) 
+                            : 0} kWh/month
                         </div>
                       </div>
                       <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
                         <div style={{ color: '#7f8c8d', fontSize: '0.85rem', marginBottom: '5px' }}>Payback Period</div>
                         <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f39c12' }}>
-                          {latestAnalysis.analysis?.financialAnalysis?.payback_years || 0} years
+                          {latestAnalysis.analysis?.financials?.payback_years?.toFixed(1) || 0} years
                         </div>
                       </div>
                       <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
-                        <div style={{ color: '#7f8c8d', fontSize: '0.85rem', marginBottom: '5px' }}>ROI</div>
+                        <div style={{ color: '#7f8c8d', fontSize: '0.85rem', marginBottom: '5px' }}>ROI (10 years)</div>
                         <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#e91e63' }}>
-                          {latestAnalysis.analysis?.financialAnalysis?.roi_25_years || 0}%
+                          {(() => {
+                            const yearlySavings = latestAnalysis.analysis?.financials?.yearly_savings || 0;
+                            let netCost = latestAnalysis.analysis?.financials?.system_cost?.net_cost_inr;
+                            
+                            // Calculate net cost if missing
+                            if (!netCost && latestAnalysis.analysis?.systemRecommendation?.size_kw) {
+                              const systemSizeKw = latestAnalysis.analysis.systemRecommendation.size_kw;
+                              let costPerKw;
+                              if (systemSizeKw <= 3) costPerKw = 75000;
+                              else if (systemSizeKw <= 10) costPerKw = 65000;
+                              else costPerKw = 55000;
+                              
+                              const grossCost = systemSizeKw * costPerKw;
+                              let subsidy;
+                              if (systemSizeKw <= 3) {
+                                subsidy = grossCost * 0.40;
+                              } else if (systemSizeKw <= 10) {
+                                subsidy = (3 * costPerKw * 0.40) + ((systemSizeKw - 3) * costPerKw * 0.20);
+                              } else {
+                                subsidy = (3 * costPerKw * 0.40) + (7 * costPerKw * 0.20);
+                              }
+                              netCost = grossCost - subsidy;
+                            }
+                            
+                            if (!netCost || netCost === 0) return 'N/A';
+                            // ROI for 10 years = (10 year savings - Cost) / Cost * 100
+                            const tenYearSavings = yearlySavings * 10;
+                            const roi = ((tenYearSavings - netCost) / netCost) * 100;
+                            return roi > 0 ? roi.toFixed(0) : 0;
+                          })()}%
                         </div>
                       </div>
                     </div>
 
                     {/* Recommendations */}
-                    {latestAnalysis.analysis?.systemRecommendation && (
-                      <div style={{ backgroundColor: '#e3f2fd', padding: '20px', borderRadius: '8px', border: '1px solid #90caf9' }}>
-                        <h5 style={{ margin: '0 0 10px 0', color: '#1976d2' }}>💡 System Recommendation</h5>
-                        <p style={{ margin: '5px 0', color: '#2c3e50' }}>
-                          <strong>Recommended Size:</strong> {latestAnalysis.analysis.systemRecommendation.size_kw} kW
-                        </p>
-                        <p style={{ margin: '5px 0', color: '#2c3e50' }}>
-                          <strong>Number of Panels:</strong> {latestAnalysis.analysis.systemRecommendation.num_panels}
-                        </p>
-                        <p style={{ margin: '5px 0', color: '#2c3e50' }}>
-                          <strong>Installation Cost:</strong> ₹{latestAnalysis.analysis.systemRecommendation.installation_cost?.toLocaleString()}
-                        </p>
-                      </div>
-                    )}
+                    {latestAnalysis.analysis?.systemRecommendation && (() => {
+                      // Calculate costs if missing from database (for old analyses)
+                      const systemSizeKw = latestAnalysis.analysis.systemRecommendation.size_kw;
+                      let costPerKw = latestAnalysis.analysis?.financials?.system_cost?.cost_per_kw;
+                      let grossCost = latestAnalysis.analysis?.financials?.system_cost?.gross_cost_inr;
+                      let subsidy = latestAnalysis.analysis?.financials?.system_cost?.subsidy_inr;
+                      let netCost = latestAnalysis.analysis?.financials?.system_cost?.net_cost_inr;
+                      
+                      // If costs are missing, calculate them
+                      if (!costPerKw || !grossCost) {
+                        // Determine cost per kW based on system size
+                        if (systemSizeKw <= 3) costPerKw = 75000;
+                        else if (systemSizeKw <= 10) costPerKw = 65000;
+                        else costPerKw = 55000;
+                        
+                        grossCost = systemSizeKw * costPerKw;
+                        
+                        // Calculate subsidy
+                        if (systemSizeKw <= 3) {
+                          subsidy = grossCost * 0.40;
+                        } else if (systemSizeKw <= 10) {
+                          subsidy = (3 * costPerKw * 0.40) + ((systemSizeKw - 3) * costPerKw * 0.20);
+                        } else {
+                          subsidy = (3 * costPerKw * 0.40) + (7 * costPerKw * 0.20);
+                        }
+                        
+                        netCost = grossCost - subsidy;
+                      }
+                      
+                      return (
+                        <div style={{ backgroundColor: '#e3f2fd', padding: '20px', borderRadius: '8px', border: '1px solid #90caf9' }}>
+                          <h5 style={{ margin: '0 0 15px 0', color: '#1976d2' }}>💡 System Recommendation</h5>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                            <div>
+                              <p style={{ margin: '5px 0', color: '#2c3e50', fontSize: '0.95rem' }}>
+                                <strong>Recommended Size:</strong> {systemSizeKw} kW
+                              </p>
+                              <p style={{ margin: '5px 0', color: '#2c3e50', fontSize: '0.95rem' }}>
+                                <strong>Number of Panels:</strong> {Math.ceil((systemSizeKw * 1000) / 400)} panels (400W each)
+                              </p>
+                            </div>
+                            <div>
+                              <p style={{ margin: '5px 0', color: '#2c3e50', fontSize: '0.95rem' }}>
+                                <strong>Annual Generation:</strong> {latestAnalysis.analysis.systemRecommendation.annual_generation?.toLocaleString()} kWh/year
+                              </p>
+                              <p style={{ margin: '5px 0', color: '#2c3e50', fontSize: '0.95rem' }}>
+                                <strong>Cost per kW:</strong> ₹{costPerKw.toLocaleString()}/kW
+                              </p>
+                            </div>
+                          </div>
+                          <div style={{ backgroundColor: 'white', padding: '15px', borderRadius: '6px', marginTop: '10px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', fontSize: '0.9rem' }}>
+                              <div>
+                                <div style={{ color: '#7f8c8d', fontSize: '0.8rem', marginBottom: '3px' }}>Gross Cost</div>
+                                <div style={{ fontWeight: 'bold', color: '#e74c3c', fontSize: '1.1rem' }}>
+                                  ₹{Math.round(grossCost).toLocaleString()}
+                                </div>
+                              </div>
+                              <div>
+                                <div style={{ color: '#7f8c8d', fontSize: '0.8rem', marginBottom: '3px' }}>Govt. Subsidy</div>
+                                <div style={{ fontWeight: 'bold', color: '#27ae60', fontSize: '1.1rem' }}>
+                                  - ₹{Math.round(subsidy).toLocaleString()}
+                                </div>
+                              </div>
+                              <div>
+                                <div style={{ color: '#7f8c8d', fontSize: '0.8rem', marginBottom: '3px' }}>Net Cost (After Subsidy)</div>
+                                <div style={{ fontWeight: 'bold', color: '#2980b9', fontSize: '1.1rem' }}>
+                                  ₹{Math.round(netCost).toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}

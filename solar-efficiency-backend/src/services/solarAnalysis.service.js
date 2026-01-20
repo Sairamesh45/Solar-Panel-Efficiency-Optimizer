@@ -271,7 +271,8 @@ function transformMLResponse(mlData, originalInput) {
       yearly_savings: mlData.estimated_savings_per_year,
       monthly_savings: Math.round(mlData.estimated_savings_per_year / 12),
       payback_years: paybackYears,
-      lifetime_savings: Math.round(mlData.estimated_savings_per_year * 25), // 25yr lifespan
+      lifetime_savings_10yr: Math.round(mlData.estimated_savings_per_year * 10), // 10yr for ROI calculation
+      lifetime_savings_25yr: Math.round(mlData.estimated_savings_per_year * 25), // 25yr lifespan
       system_cost: {
         gross_cost_inr: Math.round(grossCost),
         subsidy_inr: Math.round(subsidy),

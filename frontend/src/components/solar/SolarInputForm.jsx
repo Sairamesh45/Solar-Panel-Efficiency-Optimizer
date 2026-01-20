@@ -8,7 +8,7 @@ const SolarInputForm = ({ onSubmit, loading }) => {
   const [customCity, setCustomCity] = useState('');
   const [formData, setFormData] = useState({
     location: { city: 'Mumbai', state: 'Maharashtra', latitude: 19.07, longitude: 72.87 },
-    roof: { area: 50, type: 'flat', tilt: 15, orientation: 'south', shading: 'none' },
+    roof: { type: 'flat', tilt: 15, orientation: 'south', shading: 'none' },
     energy: { monthly_bill: 2500, tariff: 7 },
     system: { panel_age_years: 2, last_cleaned_days_ago: 30 }
   });
@@ -99,7 +99,27 @@ const SolarInputForm = ({ onSubmit, loading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Calculate area automatically from monthly bill
+    // Assumptions: 
+    // - Monthly bill / tariff = monthly consumption (kWh)
+    // - Average 5 peak sun hours per day in India
+    // - 15% panel efficiency
+    // - 150 kWh per month per kW installed
+    // - Area = (monthly_consumption / 150) * 1000 / 150 W/m² (panel density)
+    const monthlyConsumption = formData.energy.monthly_bill / formData.energy.tariff;
+    const requiredSystemKw = monthlyConsumption / 150; // 150 kWh per month per kW
+    const calculatedArea = Math.ceil((requiredSystemKw * 1000) / 150); // 150W per sq meter
+    
+    const dataWithArea = {
+      ...formData,
+      roof: {
+        ...formData.roof,
+        area: calculatedArea
+      }
+    };
+    
+    onSubmit(dataWithArea);
   };
 
   return (
@@ -216,10 +236,6 @@ const SolarInputForm = ({ onSubmit, loading }) => {
           {/* Roof Section */}
           <fieldset style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '5px' }}>
             <legend style={{ fontWeight: 'bold' }}>Roof & Environment</legend>
-            <div style={{ marginBottom: '10px' }}>
-              <label>Area (sq m)</label>
-              <input type="number" value={formData.roof.area} onChange={(e) => handleChange(e, 'roof', 'area')} required style={{ width: '100%' }} />
-            </div>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
               <div style={{ flex: 1 }}>
                 <label>Type</label>

@@ -96,7 +96,6 @@ const Navbar = () => {
               <NavLink to="/analyze">🔍 Analyze</NavLink>
               <NavLink to="/dashboard">📊 Dashboard</NavLink>
               <NavLink to="/trends">📈 Trends</NavLink>
-              <NavLink to="/ml-metrics">🤖 ML Model</NavLink>
               {user.role === 'Admin' && <NavLink to="/admin">🛡️ Admin</NavLink>}
               
               <div style={{

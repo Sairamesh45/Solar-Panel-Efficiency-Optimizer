@@ -49,7 +49,14 @@ const solarAnalysisResultSchema = new mongoose.Schema({
       yearly_savings: Number,
       monthly_savings: Number,
       payback_years: Number,
-      lifetime_savings: Number
+      lifetime_savings_10yr: Number,
+      lifetime_savings_25yr: Number,
+      system_cost: {
+        gross_cost_inr: Number,
+        subsidy_inr: Number,
+        net_cost_inr: Number,
+        cost_per_kw: Number
+      }
     },
     
     // Location (for reference)

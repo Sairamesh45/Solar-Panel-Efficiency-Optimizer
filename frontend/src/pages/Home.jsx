@@ -174,8 +174,6 @@ const Home = () => {
               icon="🤖"
               title="AI-Powered Analysis"
               description="Advanced machine learning algorithms analyze your solar system's performance and predict optimal configurations."
-              link="/ml-metrics"
-              linkText="View ML Model"
             />
             <FeatureCard 
               icon="💰"
