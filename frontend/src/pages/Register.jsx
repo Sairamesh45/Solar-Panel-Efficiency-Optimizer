@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext';
+import { 
+  validateEmail, 
+  validatePassword, 
+  validatePasswordMatch, 
+  validateName,
+  formatServerError,
+  getPasswordStrength
+} from '../utils/authValidation';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,142 +18,367 @@ const Register = () => {
     confirmPassword: '',
     role: 'Customer'
   });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [serverError, setServerError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ strength: '', color: '', percentage: 0 });
   
   const { register } = useAuthContext();
   const navigate = useNavigate();
 
+  // Update password strength indicator
+  useEffect(() => {
+    if (formData.password) {
+      setPasswordStrength(getPasswordStrength(formData.password));
+    } else {
+      setPasswordStrength({ strength: '', color: '', percentage: 0 });
+    }
+  }, [formData.password]);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field if user is typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  // Real-time validation on blur
+  const handleBlur = (fieldName) => {
+    let validation = { valid: true, error: '' };
+    
+    switch (fieldName) {
+      case 'name':
+        validation = validateName(formData.name);
+        break;
+      case 'email':
+        validation = validateEmail(formData.email);
+        break;
+      case 'password':
+        validation = validatePassword(formData.password);
+        break;
+      case 'confirmPassword':
+        validation = validatePasswordMatch(formData.password, formData.confirmPassword);
+        break;
+      default:
+        break;
+    }
+    
+    setErrors(prev => ({ ...prev, [fieldName]: validation.error }));
+  };
+
+  // Validate entire form
+  const validateForm = () => {
+    const nameValidation = validateName(formData.name);
+    const emailValidation = validateEmail(formData.email);
+    const passwordValidation = validatePassword(formData.password);
+    const confirmPasswordValidation = validatePasswordMatch(formData.password, formData.confirmPassword);
+
+    setErrors({
+      name: nameValidation.error,
+      email: emailValidation.error,
+      password: passwordValidation.error,
+      confirmPassword: confirmPasswordValidation.error
+    });
+
+    return nameValidation.valid && emailValidation.valid && 
+           passwordValidation.valid && confirmPasswordValidation.valid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      return setError('Passwords do not match');
+    setServerError('');
+    setSuccessMessage('');
+    
+    if (!validateForm()) {
+      return;
     }
 
     setLoading(true);
-    setError('');
     
     try {
       const { confirmPassword, ...registerData } = formData;
       await register(registerData);
-      navigate('/dashboard');
+      
+      // Show success message briefly
+      setSuccessMessage('Account created successfully! Redirecting...');
+      
+      // Redirect after short delay
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Try again.');
+      setServerError(formatServerError(err));
     } finally {
       setLoading(false);
     }
   };
 
+  const togglePasswordVisibility = (field) => {
+    if (field === 'password') {
+      setShowPassword(prev => !prev);
+    } else {
+      setShowConfirmPassword(prev => !prev);
+    }
+  };
+
   return (
-    <div style={{ maxWidth: '400px', margin: '80px auto', padding: '30px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', borderRadius: '8px', background: 'white' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#2c3e50' }}>Create an Account</h2>
-      
-      {error && (
-        <div style={{ 
-          padding: '10px', 
-          backgroundColor: '#fdedec', 
-          color: '#e74c3c', 
-          borderRadius: '5px', 
-          marginBottom: '15px', 
-          textAlign: 'center',
-          fontSize: '0.9rem'
-        }}>
-          {error}
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Create Account</h1>
+          <p>Join Solar Panel Efficiency Optimizer today</p>
         </div>
-      )}
-      
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Full Name</label>
-          <input 
-            type="text" 
-            name="name"
-            placeholder="John Doe"
-            value={formData.name} 
-            onChange={handleChange} 
-            required 
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
-          />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Email Address</label>
-          <input 
-            type="email" 
-            name="email"
-            placeholder="john@example.com"
-            value={formData.email} 
-            onChange={handleChange} 
-            required 
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
-          />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Role</label>
-          <select 
-            name="role"
-            value={formData.role} 
-            onChange={handleChange} 
-            required 
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
+        
+        {serverError && (
+          <div className="auth-alert auth-alert-error" role="alert">
+            <span>⚠</span>
+            <span>{serverError}</span>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="auth-alert auth-alert-success" role="alert">
+            <span>✓</span>
+            <span>{successMessage}</span>
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="auth-form" noValidate>
+          {/* Name Field */}
+          <div className="auth-form-group">
+            <label htmlFor="name">Full Name</label>
+            <div className="auth-input-wrapper">
+              <input
+                id="name"
+                type="text"
+                name="name"
+                className={`auth-input ${errors.name ? 'error' : ''}`}
+                value={formData.name}
+                onChange={handleChange}
+                onBlur={() => handleBlur('name')}
+                placeholder="John Doe"
+                disabled={loading}
+                aria-invalid={errors.name ? 'true' : 'false'}
+                aria-describedby={errors.name ? 'name-error' : undefined}
+                autoComplete="name"
+              />
+            </div>
+            {errors.name && (
+              <div id="name-error" className="auth-error-message" role="alert">
+                <span>✕</span>
+                <span>{errors.name}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Email Field */}
+          <div className="auth-form-group">
+            <label htmlFor="email">Email Address</label>
+            <div className="auth-input-wrapper">
+              <input
+                id="email"
+                type="email"
+                name="email"
+                className={`auth-input ${errors.email ? 'error' : ''}`}
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={() => handleBlur('email')}
+                placeholder="john@example.com"
+                disabled={loading}
+                aria-invalid={errors.email ? 'true' : 'false'}
+                aria-describedby={errors.email ? 'email-error' : undefined}
+                autoComplete="email"
+              />
+            </div>
+            {errors.email && (
+              <div id="email-error" className="auth-error-message" role="alert">
+                <span>✕</span>
+                <span>{errors.email}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Role Field */}
+          <div className="auth-form-group">
+            <label htmlFor="role">Account Type</label>
+            <select
+              id="role"
+              name="role"
+              className="auth-select"
+              value={formData.role}
+              onChange={handleChange}
+              disabled={loading}
+            >
+              <option value="Customer">Customer</option>
+              <option value="Installer">Installer</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+
+          {/* Password Field */}
+          <div className="auth-form-group">
+            <label htmlFor="password">Password</label>
+            <div className="auth-input-wrapper">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                className={`auth-input has-icon ${errors.password ? 'error' : ''}`}
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={() => handleBlur('password')}
+                placeholder="Create a strong password"
+                disabled={loading}
+                aria-invalid={errors.password ? 'true' : 'false'}
+                aria-describedby={errors.password ? 'password-error' : 'password-help'}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="auth-input-icon"
+                onClick={() => togglePasswordVisibility('password')}
+                tabIndex={-1}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            {errors.password ? (
+              <div id="password-error" className="auth-error-message" role="alert">
+                <span>✕</span>
+                <span>{errors.password}</span>
+              </div>
+            ) : (
+              <div id="password-help" className="auth-helper-text">
+                Must include uppercase, lowercase, number, and special character
+              </div>
+            )}
+            {/* Password Strength Indicator */}
+            {passwordStrength.strength && (
+              <div style={{ marginTop: '8px' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  marginBottom: '6px'
+                }}>
+                  <span className="auth-helper-text">Password Strength:</span>
+                  <span style={{ 
+                    color: passwordStrength.color, 
+                    fontSize: '12px',
+                    fontWeight: 600
+                  }}>
+                    {passwordStrength.strength}
+                  </span>
+                </div>
+                <div style={{ 
+                  height: '4px', 
+                  background: 'rgba(255, 255, 255, 0.1)', 
+                  borderRadius: '2px',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ 
+                    height: '100%', 
+                    width: `${passwordStrength.percentage}%`,
+                    background: passwordStrength.color,
+                    transition: 'all 0.3s ease'
+                  }} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Confirm Password Field */}
+          <div className="auth-form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <div className="auth-input-wrapper">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                className={`auth-input has-icon ${errors.confirmPassword ? 'error' : ''}`}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                onBlur={() => handleBlur('confirmPassword')}
+                placeholder="Repeat your password"
+                disabled={loading}
+                aria-invalid={errors.confirmPassword ? 'true' : 'false'}
+                aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="auth-input-icon"
+                onClick={() => togglePasswordVisibility('confirmPassword')}
+                tabIndex={-1}
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <div id="confirm-password-error" className="auth-error-message" role="alert">
+                <span>✕</span>
+                <span>{errors.confirmPassword}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="auth-btn-primary"
+            disabled={loading}
+            aria-busy={loading}
           >
-            <option value="Customer">Customer</option>
-            <option value="Admin">Admin</option>
-            <option value="Installer">Installer</option>
-          </select>
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                <span className="auth-spinner" />
+                <span>Creating Account...</span>
+              </span>
+            ) : (
+              'Create Account'
+            )}
+          </button>
+        </form>
+
+        {/* Footer Links */}
+        <div className="auth-footer">
+          <p className="auth-footer-text">
+            Already have an account? <Link to="/login" className="auth-link">Sign in</Link>
+          </p>
         </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Password</label>
-          <input 
-            type="password" 
-            name="password"
-            placeholder="Min 8 chars with A-Z, a-z, 0-9, !@#"
-            value={formData.password} 
-            onChange={handleChange} 
-            required 
-            minLength="8"
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
-          />
-          <small style={{ display: 'block', marginTop: '5px', color: '#7f8c8d', fontSize: '0.8rem' }}>
-            Must include uppercase, lowercase, number, and symbol
-          </small>
-        </div>
-        <div style={{ marginBottom: '25px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Confirm Password</label>
-          <input 
-            type="password" 
-            name="confirmPassword"
-            placeholder="Repeat password"
-            value={formData.confirmPassword} 
-            onChange={handleChange} 
-            required 
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
-          />
-        </div>
-        <button 
-          type="submit" 
-          disabled={loading}
-          style={{ 
-            width: '100%', 
-            padding: '12px', 
-            background: '#27ae60', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '5px', 
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '1rem',
-            fontWeight: '600'
-          }}
-        >
-          {loading ? 'Creating Account...' : 'Register Now'}
-        </button>
-      </form>
-      
-      <div style={{ textAlign: 'center', marginTop: '20px', color: '#7f8c8d' }}>
-        Already have an account? <Link to="/login" style={{ color: '#2980b9', textDecoration: 'none' }}>Login here</Link>
       </div>
     </div>
   );
