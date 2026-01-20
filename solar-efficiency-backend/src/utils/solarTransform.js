@@ -52,8 +52,8 @@ exports.formatForML = (inputData) => {
   const monthlyKwh = exports.billToKwh(energy.monthly_bill, energy.tariff);
   
   return {
-    lat: parseFloat(location.latitude.toFixed(2)),
-    lon: parseFloat(location.longitude.toFixed(2)),
+    lat: parseFloat(parseFloat(location.latitude).toFixed(2)),
+    lon: parseFloat(parseFloat(location.longitude).toFixed(2)),
     roof_area: parseFloat(roof.area),
     tilt: parseFloat(roof.tilt),
     orientation: exports.normalizeOrientation(roof.orientation),

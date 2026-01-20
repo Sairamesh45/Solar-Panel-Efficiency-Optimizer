@@ -44,7 +44,8 @@ exports.analyzeSolarPanel = async (req, res) => {
 
   } catch (error) {
     console.error('Solar Analysis Error:', error);
-    return errorResponse(res, 'Analysis failed', 500);
+    const errorMessage = error.message || 'Analysis failed';
+    return errorResponse(res, errorMessage, 500);
   }
 };
 

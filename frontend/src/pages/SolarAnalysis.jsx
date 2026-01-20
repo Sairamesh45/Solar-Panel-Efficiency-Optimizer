@@ -22,8 +22,21 @@ const SolarAnalysis = () => {
       }
     } catch (err) {
       console.error('Analysis Error:', err);
-      const msg = err.response?.data?.message || 'Server connection error. Check if backend is running.';
-      setError(msg);
+      // If server returned validation errors, format them for display
+      const resp = err.response?.data;
+      if (resp) {
+        if (Array.isArray(resp.errors) && resp.errors.length) {
+          const detail = resp.errors.map(e => {
+            const key = Object.keys(e)[0];
+            return `${key}: ${e[key]}`;
+          }).join(' • ');
+          setError(`${resp.message || 'Validation failed'} — ${detail}`);
+        } else {
+          setError(resp.message || 'Server connection error. Check if backend is running.');
+        }
+      } else {
+        setError('Server connection error. Check if backend is running.');
+      }
     } finally {
       setLoading(false);
     }

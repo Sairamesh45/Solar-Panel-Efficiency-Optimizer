@@ -1,7 +1,7 @@
 import React from 'react';
 import EfficiencyLossChart from './EfficiencyLossChart';
 import MaintenanceAlert from './MaintenanceAlert';
-import { formatCurrency, formatKwh, formatKw, formatPercentage } from '../../utils/formatters';
+import { formatCurrency, formatKwh, formatKw, formatPercentage, formatNumber } from '../../utils/formatters';
 
 const SolarResultCard = ({ result }) => {
   if (!result) return null;
@@ -12,17 +12,17 @@ const SolarResultCard = ({ result }) => {
     <div style={{ marginTop: '30px', animation: 'fadeIn 0.5s ease-in' }}>
       <div style={{ 
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '30px',
-        borderRadius: '15px',
+        padding: '35px',
+        borderRadius: '16px',
         color: 'white',
         marginBottom: '30px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.15)'
+        boxShadow: '0 8px 24px rgba(102, 126, 234, 0.25)'
       }}>
-        <h2 style={{ margin: '0 0 10px 0', fontSize: '2.2rem' }}>
-          ☀️ Solar Analysis Complete
+        <h2 style={{ margin: '0 0 8px 0', fontSize: '2rem', fontWeight: '600' }}>
+          Solar Analysis Complete
         </h2>
-        <p style={{ opacity: 0.9, fontSize: '1.1rem', margin: 0 }}>
-          Here are the personalized results for your solar installation
+        <p style={{ opacity: 0.95, fontSize: '1rem', margin: 0, lineHeight: '1.5' }}>
+          Your personalized solar efficiency results
         </p>
       </div>
       
@@ -35,16 +35,22 @@ const SolarResultCard = ({ result }) => {
         
         {/* System Recommendation */}
         <div style={{ 
-          background: 'linear-gradient(135deg, #e8f6ef 0%, #c8e6c9 100%)', 
-          padding: '25px', 
-          borderRadius: '15px', 
-          boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
-          transition: 'transform 0.2s',
-          cursor: 'pointer'
+          background: 'white', 
+          padding: '28px', 
+          borderRadius: '16px', 
+          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+          border: '1px solid #e9ecef',
+          transition: 'all 0.3s ease'
         }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-5px)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>💡</div>
+        onMouseEnter={e => {
+          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
+        }}>
+          <div style={{ fontSize: '2.2rem', marginBottom: '12px' }}>💡</div>
           <h3 style={{ color: '#27ae60', margin: '0 0 15px 0', fontSize: '1.3rem' }}>
             Recommended System
           </h3>
@@ -68,16 +74,22 @@ const SolarResultCard = ({ result }) => {
 
         {/* Financials */}
         <div style={{ 
-          background: 'linear-gradient(135deg, #fff9e6 0%, #ffe8a1 100%)', 
-          padding: '25px', 
-          borderRadius: '15px', 
-          boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
-          transition: 'transform 0.2s',
-          cursor: 'pointer'
+          background: 'white', 
+          padding: '28px', 
+          borderRadius: '16px', 
+          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+          border: '1px solid #e9ecef',
+          transition: 'all 0.3s ease'
         }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-5px)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>💰</div>
+        onMouseEnter={e => {
+          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
+        }}>
+          <div style={{ fontSize: '2.2rem', marginBottom: '12px' }}>💰</div>
           <h3 style={{ color: '#f39c12', margin: '0 0 15px 0', fontSize: '1.3rem' }}>
             Financial Benefits
           </h3>
@@ -107,16 +119,22 @@ const SolarResultCard = ({ result }) => {
 
         {/* Efficiency */}
         <div style={{ 
-          background: 'linear-gradient(135deg, #fdedec 0%, #f5b7b1 100%)', 
-          padding: '25px', 
-          borderRadius: '15px', 
-          boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
-          transition: 'transform 0.2s',
-          cursor: 'pointer'
+          background: 'white', 
+          padding: '28px', 
+          borderRadius: '16px', 
+          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+          border: '1px solid #e9ecef',
+          transition: 'all 0.3s ease'
         }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-5px)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📊</div>
+        onMouseEnter={e => {
+          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
+        }}>
+          <div style={{ fontSize: '2.2rem', marginBottom: '12px' }}>📊</div>
           <h3 style={{ color: '#e74c3c', margin: '0 0 15px 0', fontSize: '1.3rem' }}>
             System Performance
           </h3>
@@ -136,7 +154,7 @@ const SolarResultCard = ({ result }) => {
                 color: performanceAnalysis.system_health_score > 80 ? '#27ae60' : 
                        performanceAnalysis.system_health_score > 60 ? '#f39c12' : '#e74c3c'
               }}>
-                {performanceAnalysis.system_health_score}/100
+                {formatNumber(performanceAnalysis.system_health_score, 2)}%
               </span>
             </div>
           </div>
@@ -158,19 +176,21 @@ const SolarResultCard = ({ result }) => {
       {/* Additional Details */}
       <div style={{
         background: 'white',
-        padding: '25px',
-        borderRadius: '15px',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+        padding: '30px',
+        borderRadius: '16px',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+        border: '1px solid #e9ecef',
         marginTop: '25px'
       }}>
         <h3 style={{ 
           color: '#2c3e50', 
-          borderBottom: '2px solid #3498db', 
-          paddingBottom: '12px',
-          marginBottom: '20px',
-          fontSize: '1.5rem'
+          borderBottom: '2px solid #e9ecef', 
+          paddingBottom: '14px',
+          marginBottom: '24px',
+          fontSize: '1.4rem',
+          fontWeight: '600'
         }}>
-          📋 Detailed Breakdown
+          Detailed Breakdown
         </h3>
         
         <div style={{ display: 'grid', gap: '20px' }}>
@@ -191,7 +211,7 @@ const SolarResultCard = ({ result }) => {
               />
               <MetricItem 
                 label="System Health" 
-                value={`${performanceAnalysis.system_health_score}/100`} 
+                value={`${formatNumber(performanceAnalysis.system_health_score, 2)}%`} 
                 color="#27ae60"
               />
               {performanceAnalysis.loss_breakdown && Object.entries(performanceAnalysis.loss_breakdown).map(([key, value]) => (
@@ -261,19 +281,20 @@ const SolarResultCard = ({ result }) => {
       {/* ML Model Predictions */}
       {result.mlPredictions && (
         <div style={{
-          background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+          background: 'white',
           padding: '30px',
-          borderRadius: '15px',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+          borderRadius: '16px',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+          border: '1px solid #e9ecef',
           marginTop: '25px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-            <div style={{ fontSize: '2.5rem', marginRight: '15px' }}>🤖</div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+            <div style={{ fontSize: '2.2rem', marginRight: '15px' }}>🤖</div>
             <div>
-              <h3 style={{ color: '#1976d2', margin: 0, fontSize: '1.8rem' }}>
+              <h3 style={{ color: '#2c3e50', margin: 0, fontSize: '1.4rem', fontWeight: '600' }}>
                 AI Model Predictions
               </h3>
-              <p style={{ color: '#555', margin: '5px 0 0 0', fontSize: '0.95rem' }}>
+              <p style={{ color: '#7f8c8d', margin: '6px 0 0 0', fontSize: '0.9rem' }}>
                 Generated by {result.modelInfo?.name} with {result.modelInfo?.accuracy?.r2_score ? (result.modelInfo.accuracy.r2_score * 100).toFixed(2) + '% accuracy' : 'high accuracy'}
               </p>
             </div>
@@ -281,8 +302,8 @@ const SolarResultCard = ({ result }) => {
 
           {/* Instantaneous Power */}
           <div style={{ marginBottom: '25px' }}>
-            <h4 style={{ color: '#1976d2', marginBottom: '15px', fontSize: '1.2rem', borderBottom: '2px solid #1976d2', paddingBottom: '8px' }}>
-              ⚡ Instantaneous Power Output
+            <h4 style={{ color: '#2c3e50', marginBottom: '15px', fontSize: '1.1rem', borderBottom: '2px solid #e9ecef', paddingBottom: '10px', fontWeight: '600' }}>
+              Instantaneous Power Output
             </h4>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
               <MetricItem 

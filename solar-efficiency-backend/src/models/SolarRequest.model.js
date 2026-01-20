@@ -8,8 +8,8 @@ const solarRequestSchema = new mongoose.Schema({
   },
   inputData: {
     location: {
-      city: { type: String, required: true },
-      state: { type: String, required: true },
+      city: { type: String, required: false },
+      state: { type: String, required: false },
       latitude: { type: Number, required: true },
       longitude: { type: Number, required: true }
     },

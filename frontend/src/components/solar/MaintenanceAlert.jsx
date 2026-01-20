@@ -12,9 +12,9 @@ const MaintenanceAlert = ({ maintenance }) => {
       case 'High':
         return '⚠️';
       case 'Medium':
-        return '⚡';
+        return '💡';
       case 'Low':
-        return '✅';
+        return '✓';
       default:
         return 'ℹ️';
     }
@@ -46,32 +46,32 @@ const MaintenanceAlert = ({ maintenance }) => {
   return (
     <div style={{ 
       background: 'white', 
-      padding: '25px', 
-      borderRadius: '12px', 
-      boxShadow: '0 4px 6px rgba(0,0,0,0.07)',
+      padding: '30px', 
+      borderRadius: '16px', 
+      boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+      border: '1px solid #e9ecef',
       marginTop: '25px'
     }}>
       <h3 style={{ 
         marginTop: 0, 
-        marginBottom: '20px', 
+        marginBottom: '24px', 
         color: '#2c3e50',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px'
+        fontSize: '1.4rem',
+        fontWeight: '600'
       }}>
-        🔧 Maintenance & Recommendations
+        Maintenance & Recommendations
       </h3>
       
       {/* Main Alert */}
       <div style={{
-        padding: '15px 20px',
-        backgroundColor: priority === 'High' ? '#fdecea' : '#e8f8f5',
-        borderLeft: `5px solid ${priorityColor}`,
-        borderRadius: '8px',
+        padding: '18px 22px',
+        backgroundColor: priority === 'High' ? '#fef5f5' : '#f0fdf4',
+        borderLeft: `4px solid ${priorityColor}`,
+        borderRadius: '12px',
         marginBottom: '25px',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px'
+        gap: '14px'
       }}>
         <span style={{ fontSize: '1.5rem' }}>{getIcon(priority)}</span>
         <div style={{ flex: 1 }}>
@@ -87,24 +87,23 @@ const MaintenanceAlert = ({ maintenance }) => {
       {/* Recommended Actions */}
       {recommended_actions && recommended_actions.length > 0 && (
         <div>
-          <h4 style={{ color: '#34495e', marginBottom: '15px', fontSize: '1rem' }}>
-            Action Items:
+          <h4 style={{ color: '#2c3e50', marginBottom: '16px', fontSize: '1.1rem', fontWeight: '600' }}>
+            Action Items
           </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {recommended_actions.map((action, index) => (
               <div
                 key={index}
                 style={{
-                  padding: '15px',
+                  padding: '16px 18px',
                   backgroundColor: '#f8f9fa',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   border: '1px solid #e9ecef',
-                  transition: 'all 0.2s',
-                  cursor: 'default'
+                  transition: 'all 0.3s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+                  e.currentTarget.style.transform = 'translateY(-3px)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = 'none';
@@ -131,9 +130,10 @@ const MaintenanceAlert = ({ maintenance }) => {
                 <div style={{ 
                   color: '#7f8c8d', 
                   fontSize: '0.9rem',
-                  paddingLeft: '20px'
+                  paddingLeft: '20px',
+                  lineHeight: '1.5'
                 }}>
-                  💡 {action.impact}
+                  {action.impact}
                 </div>
               </div>
             ))}

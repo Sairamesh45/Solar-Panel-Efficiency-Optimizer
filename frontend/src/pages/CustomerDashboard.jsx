@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSolarAnalysis } from '../hooks/useSolarAnalysis';
 import { useAuthContext } from '../context/AuthContext';
-import { formatDateTime } from '../utils/formatters';
+import { formatDateTime, formatNumber } from '../utils/formatters';
 import SensorTrends from '../components/solar/SensorTrends';
 import TrendsAnalysis from './TrendsAnalysis';
 
@@ -157,7 +157,7 @@ const CustomerDashboard = () => {
   const totalAnalyses = history?.length || 0;
   const latestAnalysis = history?.[0];
   const avgEfficiency = history?.length 
-    ? Math.round(history.reduce((sum, item) => sum + (item.analysis?.performanceAnalysis?.system_health_score || 0), 0) / history.length)
+    ? (history.reduce((sum, item) => sum + (item.analysis?.performanceAnalysis?.system_health_score || 0), 0) / history.length)
     : 0;
 
   return (
@@ -322,7 +322,7 @@ const CustomerDashboard = () => {
                 </div>
                 <div style={{ backgroundColor: '#fff3e0', padding: '25px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                   <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>⚡</div>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f39c12', marginBottom: '5px' }}>{avgEfficiency}%</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f39c12', marginBottom: '5px' }}>{formatNumber(avgEfficiency, 2)}%</div>
                   <div style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>Average Health Score</div>
                 </div>
                 <div style={{ backgroundColor: '#e3f2fd', padding: '25px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
@@ -406,7 +406,9 @@ const CustomerDashboard = () => {
                       <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
                         <div style={{ color: '#7f8c8d', fontSize: '0.85rem', marginBottom: '5px' }}>System Health Score</div>
                         <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#27ae60' }}>
-                          {latestAnalysis.analysis?.performanceAnalysis?.system_health_score || 0}%
+                          {latestAnalysis.analysis?.performanceAnalysis?.system_health_score !== undefined && latestAnalysis.analysis?.performanceAnalysis?.system_health_score !== null
+                            ? `${formatNumber(latestAnalysis.analysis.performanceAnalysis.system_health_score, 2)}%`
+                            : '0.00%'}
                         </div>
                       </div>
                       <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
@@ -549,60 +551,96 @@ const CustomerDashboard = () => {
 
           {/* My Solar Panels Section */}
           {activeSection === 'panels' && (
-            <div style={{ 
-              backgroundColor: 'white',
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-            }}>
+            <div style={{ padding: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ fontSize: '2rem', color: '#2c3e50', margin: 0 }}>☀️ My Solar Panels & Health Status</h2>
+                <h2 style={{ fontSize: '1.5rem', color: '#2c3e50', margin: 0 }}>My Solar Panels</h2>
                 <Link to="/compare-panels" style={{ textDecoration: 'none' }}>
                   <button style={{
-                    padding: '12px 24px',
-                    background: '#9b59b6',
+                    padding: '10px 20px',
+                    background: '#3498db',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     cursor: 'pointer',
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
+                    fontSize: '0.9rem'
                   }}>
-                    📊 Compare Panels
+                    Compare Panels
                   </button>
                 </Link>
               </div>
               {panels.length === 0 ? (
-                <div>No panels assigned yet. Request a new panel to get started!</div>
+                <div style={{ padding: '40px', textAlign: 'center', background: '#f8f9fa', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🌞</div>
+                  <p style={{ color: '#7f8c8d', margin: 0 }}>No panels yet</p>
+                </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
                   {panels.map(panel => {
                     const health = panelHealth[panel._id] || { health: 'unknown', healthScore: 0 };
                     return (
-                      <div key={panel._id} style={{ 
-                        background: health.health === 'critical' ? '#ffebee' : health.health === 'warning' ? '#fff3e0' : '#e8f5e9', 
-                        padding: 20, 
-                        borderRadius: 12, 
-                        border: `2px solid ${health.health === 'critical' ? '#e74c3c' : health.health === 'warning' ? '#f39c12' : '#27ae60'}`
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 10 }}>
-                          <h3 style={{ margin: 0, color: '#2c3e50' }}>{panel.name}</h3>
-                          <div style={{ fontSize: '2rem' }}>
+                      <div 
+                        key={panel._id} 
+                        style={{ 
+                          background: 'white',
+                          padding: 20, 
+                          borderRadius: 12, 
+                          border: `2px solid ${health.health === 'critical' ? '#e74c3c' : health.health === 'warning' ? '#f39c12' : '#27ae60'}`,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+                          <h3 style={{ margin: 0, color: '#2c3e50', fontSize: '1.2rem' }}>{panel.name}</h3>
+                          <div style={{ fontSize: '1.5rem' }}>
                             {health.health === 'critical' ? '🔴' : health.health === 'warning' ? '🟡' : '🟢'}
                           </div>
                         </div>
-                        <p><strong>Location:</strong> {panel.location || 'N/A'}</p>
-                        <p><strong>Wattage:</strong> {panel.specifications?.wattage || 'N/A'}</p>
-                        <p><strong>Brand:</strong> {panel.specifications?.brand || 'N/A'}</p>
-                        <p><strong>Health Score:</strong> <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: health.health === 'critical' ? '#e74c3c' : health.health === 'warning' ? '#f39c12' : '#27ae60' }}>{health.healthScore}%</span></p>
+
+                        <div style={{ fontSize: '0.85rem', marginBottom: 12 }}>
+                          <div style={{ color: '#7f8c8d', marginBottom: 2 }}>Location:</div>
+                          <div style={{ color: '#2c3e50', fontWeight: '600' }}>{panel.location || 'N/A'}</div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                          <div>
+                            <div style={{ fontSize: '0.75rem', color: '#7f8c8d', marginBottom: 2 }}>Wattage:</div>
+                            <div style={{ fontSize: '0.95rem', color: '#2c3e50', fontWeight: '600' }}>{panel.specifications?.wattage || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.75rem', color: '#7f8c8d', marginBottom: 2 }}>Brand:</div>
+                            <div style={{ fontSize: '0.95rem', color: '#2c3e50', fontWeight: '600' }}>{panel.specifications?.brand || 'N/A'}</div>
+                          </div>
+                        </div>
+
+                        <div style={{ 
+                          background: '#f8f9fa',
+                          padding: 12,
+                          borderRadius: 8,
+                          marginBottom: 12
+                        }}>
+                          <div style={{ fontSize: '0.75rem', color: '#7f8c8d', marginBottom: 4 }}>Health Score:</div>
+                          <div style={{ 
+                            fontWeight: 'bold', 
+                            fontSize: '1.5rem', 
+                            color: health.health === 'critical' ? '#e74c3c' : health.health === 'warning' ? '#f39c12' : '#27ae60'
+                          }}>
+                            {health.healthScore}%
+                          </div>
+                        </div>
+
                         {health.latestSensor && (
-                          <div style={{ marginTop: 10, padding: 10, background: 'rgba(255,255,255,0.5)', borderRadius: 8, fontSize: '0.85rem' }}>
-                            <p style={{ margin: '2px 0' }}><strong>Temp:</strong> {health.latestSensor.temperature}°C</p>
-                            <p style={{ margin: '2px 0' }}><strong>Dust:</strong> {health.latestSensor.dust}</p>
-                            <p style={{ margin: '2px 0' }}><strong>Shading:</strong> {health.latestSensor.shading}%</p>
+                          <div style={{ fontSize: '0.85rem', lineHeight: '1.8' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: '#7f8c8d' }}>Temp:</span>
+                              <span style={{ color: '#2c3e50', fontWeight: '600' }}>{health.latestSensor.temperature}°C</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: '#7f8c8d' }}>Dust:</span>
+                              <span style={{ color: '#2c3e50', fontWeight: '600' }}>{health.latestSensor.dust}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: '#7f8c8d' }}>Shading:</span>
+                              <span style={{ color: '#2c3e50', fontWeight: '600' }}>{health.latestSensor.shading}%</span>
+                            </div>
                           </div>
                         )}
                       </div>

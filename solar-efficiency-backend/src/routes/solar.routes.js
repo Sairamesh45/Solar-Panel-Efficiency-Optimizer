@@ -7,8 +7,9 @@ const solarController = require('../controllers/solar.controller');
 
 // Validation rules
 const analyzeSolarValidation = [
-  body('location.city').notEmpty().trim().withMessage('City is required'),
-  body('location.state').notEmpty().trim().withMessage('State is required'),
+  // Make city/state optional: coordinates (latitude/longitude) are required for analysis
+  body('location.city').optional({ checkFalsy: true }).trim(),
+  body('location.state').optional({ checkFalsy: true }).trim(),
   body('location.latitude').isFloat({ min: -90, max: 90 }).withMessage('Valid latitude required'),
   body('location.longitude').isFloat({ min: -180, max: 180 }).withMessage('Valid longitude required'),
   

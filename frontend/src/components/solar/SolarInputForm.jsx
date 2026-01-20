@@ -7,7 +7,7 @@ const SolarInputForm = ({ onSubmit, loading }) => {
   // For city dropdown
   const [customCity, setCustomCity] = useState('');
   const [formData, setFormData] = useState({
-    location: { city: 'Mumbai', state: 'Maharashtra', latitude: 19.07, longitude: 72.87 },
+    location: { city: '', state: '', latitude: null, longitude: null },
     roof: { type: 'flat', tilt: 15, orientation: 'south', shading: 'none' },
     energy: { monthly_bill: 2500, tariff: 7 },
     system: { panel_age_years: 2, last_cleaned_days_ago: 30 }
@@ -30,6 +30,10 @@ const SolarInputForm = ({ onSubmit, loading }) => {
   const [currentLocLoading, setCurrentLocLoading] = useState(false);
 
   const handleGetCoordinates = async () => {
+    if (!formData.location.city || formData.location.city.trim() === '') {
+      setGeoError('Please enter a city name first');
+      return;
+    }
     setGeoLoading(true);
     setGeoError('');
     try {
@@ -123,32 +127,31 @@ const SolarInputForm = ({ onSubmit, loading }) => {
   };
 
   return (
-    <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-      <h2 style={{ marginBottom: '20px' }}>Analysis Parameters</h2>
+    <div style={{ background: '#f8f9fa', padding: '24px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+      <h2 style={{ marginBottom: '20px', color: '#2c3e50' }}>Solar Analysis</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           {/* Location Section */}
-          <fieldset style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '5px' }}>
-            <legend style={{ fontWeight: 'bold' }}>Location</legend>
-            <div style={{ marginBottom: '10px' }}>
-              <label style={{ display: 'block', marginBottom: '5px' }}>State</label>
+          <fieldset style={{ border: '1px solid #ddd', padding: '16px', borderRadius: '8px', background: 'white' }}>
+            <legend style={{ fontWeight: '600', padding: '0 8px' }}>Location</legend>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px' }}>State</label>
               <select
                 value={formData.location.state}
                 onChange={e => {
                   handleChange({ target: { value: e.target.value } }, 'location', 'state');
-                  // Reset city if state changes
                   setFormData(f => ({ ...f, location: { ...f.location, city: '' } }));
                   setCustomCity('');
                 }}
-                required
-                style={{ width: '100%', marginBottom: '8px' }}
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}
               >
-                <option value="">-- Select State --</option>
+                <option value="">Select State</option>
                 {INDIAN_STATES.map(state => (
                   <option key={state} value={state}>{state}</option>
                 ))}
               </select>
-              <label style={{ display: 'block', marginBottom: '5px' }}>City</label>
+              
+              <label style={{ display: 'block', marginTop: '12px', marginBottom: '6px' }}>City</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <select
                   value={INDIAN_CITIES[formData.location.state]?.includes(formData.location.city) ? formData.location.city : ''}
@@ -157,7 +160,7 @@ const SolarInputForm = ({ onSubmit, loading }) => {
                     setCustomCity('');
                   }}
                   disabled={!formData.location.state}
-                  style={{ flex: 2 }}
+                  style={{ flex: 2, padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}
                 >
                   <option value="">-- Select City --</option>
                   {formData.location.state && INDIAN_CITIES[formData.location.state]?.map(city => (
@@ -174,7 +177,7 @@ const SolarInputForm = ({ onSubmit, loading }) => {
                       handleChange({ target: { value: e.target.value } }, 'location', 'city');
                     }}
                     placeholder="Enter city"
-                    style={{ flex: 2 }}
+                    style={{ flex: 2, padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}
                   />
                 )}
                 <button 
@@ -183,11 +186,11 @@ const SolarInputForm = ({ onSubmit, loading }) => {
                   disabled={geoLoading || currentLocLoading} 
                   style={{ 
                     flex: 1, 
-                    background: '#2980b9', 
+                    background: '#3498db',
                     color: 'white', 
                     border: 'none', 
-                    borderRadius: '4px', 
-                    padding: '8px', 
+                    borderRadius: '6px', 
+                    padding: '10px', 
                     cursor: (geoLoading || currentLocLoading) ? 'not-allowed' : 'pointer',
                     fontSize: '0.9rem'
                   }}
@@ -202,11 +205,11 @@ const SolarInputForm = ({ onSubmit, loading }) => {
                   disabled={geoLoading || currentLocLoading} 
                   style={{ 
                     width: '100%',
-                    background: '#27ae60', 
+                    background: '#27ae60',
                     color: 'white', 
                     border: 'none', 
-                    borderRadius: '4px', 
-                    padding: '8px', 
+                    borderRadius: '6px', 
+                    padding: '10px', 
                     cursor: (geoLoading || currentLocLoading) ? 'not-allowed' : 'pointer',
                     fontSize: '0.9rem',
                     display: 'flex',
@@ -221,32 +224,46 @@ const SolarInputForm = ({ onSubmit, loading }) => {
               </div>
               {geoError && <div style={{ color: '#e74c3c', fontSize: '0.85rem', marginTop: '4px' }}>{geoError}</div>}
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
               <div style={{ flex: 1 }}>
-                <label>Lat</label>
-                <input type="number" step="0.01" value={formData.location.latitude} onChange={(e) => handleChange(e, 'location', 'latitude')} required style={{ width: '100%' }} />
+                <label style={{ display: 'block', marginBottom: '6px' }}>Latitude</label>
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  value={formData.location.latitude} 
+                  onChange={(e) => handleChange(e, 'location', 'latitude')} 
+                  required 
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} 
+                />
               </div>
               <div style={{ flex: 1 }}>
-                <label>Lon</label>
-                <input type="number" step="0.01" value={formData.location.longitude} onChange={(e) => handleChange(e, 'location', 'longitude')} required style={{ width: '100%' }} />
+                <label style={{ display: 'block', marginBottom: '6px' }}>Longitude</label>
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  value={formData.location.longitude} 
+                  onChange={(e) => handleChange(e, 'location', 'longitude')} 
+                  required 
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} 
+                />
               </div>
             </div>
           </fieldset>
 
           {/* Roof Section */}
-          <fieldset style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '5px' }}>
-            <legend style={{ fontWeight: 'bold' }}>Roof & Environment</legend>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+          <fieldset style={{ border: '1px solid #ddd', padding: '16px', borderRadius: '8px', background: 'white' }}>
+            <legend style={{ fontWeight: '600', padding: '0 8px' }}>Roof</legend>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
               <div style={{ flex: 1 }}>
-                <label>Type</label>
-                <select value={formData.roof.type} onChange={(e) => handleChange(e, 'roof', 'type')} style={{ width: '100%' }}>
+                <label style={{ display: 'block', marginBottom: '6px' }}>Type</label>
+                <select value={formData.roof.type} onChange={(e) => handleChange(e, 'roof', 'type')} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
                   <option value="flat">Flat</option>
                   <option value="sloped">Sloped</option>
                 </select>
               </div>
               <div style={{ flex: 1 }}>
-                <label>Orientation</label>
-                <select value={formData.roof.orientation} onChange={(e) => handleChange(e, 'roof', 'orientation')} style={{ width: '100%' }}>
+                <label style={{ display: 'block', marginBottom: '6px' }}>Orientation</label>
+                <select value={formData.roof.orientation} onChange={(e) => handleChange(e, 'roof', 'orientation')} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
                   <option value="north">North</option>
                   <option value="south">South</option>
                   <option value="east">East</option>
@@ -255,8 +272,8 @@ const SolarInputForm = ({ onSubmit, loading }) => {
               </div>
             </div>
             <div>
-              <label>Shading</label>
-              <select value={formData.roof.shading} onChange={(e) => handleChange(e, 'roof', 'shading')} style={{ width: '100%' }}>
+              <label style={{ display: 'block', marginBottom: '6px' }}>Shading</label>
+              <select value={formData.roof.shading} onChange={(e) => handleChange(e, 'roof', 'shading')} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
                 <option value="none">None</option>
                 <option value="partial">Partial</option>
                 <option value="full">Full</option>
@@ -265,28 +282,53 @@ const SolarInputForm = ({ onSubmit, loading }) => {
           </fieldset>
 
           {/* Energy Section */}
-          <fieldset style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '5px' }}>
-            <legend style={{ fontWeight: 'bold' }}>Energy & Bills</legend>
-            <div style={{ marginBottom: '10px' }}>
-              <label>Avg Monthly Bill (₹)</label>
-              <input type="number" value={formData.energy.monthly_bill} onChange={(e) => handleChange(e, 'energy', 'monthly_bill')} required style={{ width: '100%' }} />
+          <fieldset style={{ border: '1px solid #ddd', padding: '16px', borderRadius: '8px', background: 'white' }}>
+            <legend style={{ fontWeight: '600', padding: '0 8px' }}>Energy & Bills</legend>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px' }}>Monthly Bill (₹)</label>
+              <input 
+                type="number" 
+                value={formData.energy.monthly_bill} 
+                onChange={(e) => handleChange(e, 'energy', 'monthly_bill')} 
+                required 
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} 
+              />
             </div>
             <div>
-              <label>Tariff (₹/kWh)</label>
-              <input type="number" step="0.1" value={formData.energy.tariff} onChange={(e) => handleChange(e, 'energy', 'tariff')} required style={{ width: '100%' }} />
+              <label style={{ display: 'block', marginBottom: '6px' }}>Tariff (₹/kWh)</label>
+              <input 
+                type="number" 
+                step="0.1" 
+                value={formData.energy.tariff} 
+                onChange={(e) => handleChange(e, 'energy', 'tariff')} 
+                required 
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} 
+              />
             </div>
           </fieldset>
 
           {/* System Section */}
-          <fieldset style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '5px' }}>
-            <legend style={{ fontWeight: 'bold' }}>System Age</legend>
-            <div style={{ marginBottom: '10px' }}>
-              <label>Panel Age (Years)</label>
-              <input type="number" value={formData.system.panel_age_years} onChange={(e) => handleChange(e, 'system', 'panel_age_years')} required style={{ width: '100%' }} />
+          <fieldset style={{ border: '1px solid #ddd', padding: '16px', borderRadius: '8px', background: 'white' }}>
+            <legend style={{ fontWeight: '600', padding: '0 8px' }}>System Info</legend>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px' }}>Panel Age (Years)</label>
+              <input 
+                type="number" 
+                value={formData.system.panel_age_years} 
+                onChange={(e) => handleChange(e, 'system', 'panel_age_years')} 
+                required 
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} 
+              />
             </div>
             <div>
-              <label>Last Cleaned (Days ago)</label>
-              <input type="number" value={formData.system.last_cleaned_days_ago} onChange={(e) => handleChange(e, 'system', 'last_cleaned_days_ago')} required style={{ width: '100%' }} />
+              <label style={{ display: 'block', marginBottom: '6px' }}>Last Cleaned (Days Ago)</label>
+              <input 
+                type="number" 
+                value={formData.system.last_cleaned_days_ago} 
+                onChange={(e) => handleChange(e, 'system', 'last_cleaned_days_ago')} 
+                required 
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} 
+              />
             </div>
           </fieldset>
         </div>
@@ -297,17 +339,17 @@ const SolarInputForm = ({ onSubmit, loading }) => {
           style={{ 
             marginTop: '20px', 
             width: '100%', 
-            padding: '12px', 
-            backgroundColor: '#27ae60', 
+            padding: '14px', 
+            background: loading ? '#95a5a6' : '#3498db',
             color: 'white', 
             border: 'none', 
-            borderRadius: '5px',
+            borderRadius: '8px',
             cursor: loading ? 'not-allowed' : 'pointer',
             fontSize: '1rem',
-            fontWeight: 'bold'
+            fontWeight: '600'
           }}
         >
-          {loading ? 'Processing Analysis...' : 'Run Analysis'}
+          {loading ? 'Processing...' : 'Run Analysis'}
         </button>
       </form>
     </div>

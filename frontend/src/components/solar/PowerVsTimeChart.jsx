@@ -5,23 +5,58 @@ import { Line } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const PowerVsTimeChart = ({ timeSeriesData }) => {
+  console.log('PowerVsTimeChart received data:', timeSeriesData);
+  
   if (!timeSeriesData || timeSeriesData.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px', color: '#95a5a6' }}>
-        <p>No power data available</p>
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '60px 40px',
+        background: '#f8f9fa',
+        borderRadius: '16px',
+        border: '1px solid #e9ecef'
+      }}>
+        <p style={{ color: '#7f8c8d', margin: 0 }}>No power data available for the selected period</p>
+      </div>
+    );
+  }
+
+  // Filter out data points with null/undefined power values
+  const validData = timeSeriesData.filter(d => 
+    d && typeof d.power === 'number' && !isNaN(d.power)
+  );
+
+  console.log('Valid data points:', validData.length, 'out of', timeSeriesData.length);
+
+  // Detect unit: backend may return power in kW (small numbers) or W (larger numbers)
+  const sampleMax = Math.max(...validData.map(d => Math.max(d.power || 0, d.maxPower || 0)));
+  const isInKw = sampleMax > 0 && sampleMax < 50; // likely kW if max < 50
+  const unit = isInKw ? 'kW' : 'W';
+  const scale = isInKw ? 1000 : 1; // convert kW->W for display as Watts
+
+  if (validData.length === 0) {
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '60px 40px',
+        background: '#f8f9fa',
+        borderRadius: '16px',
+        border: '1px solid #e9ecef'
+      }}>
+        <p style={{ color: '#7f8c8d', margin: 0 }}>No valid power readings found</p>
       </div>
     );
   }
 
   const data = {
-    labels: timeSeriesData.map(d => {
+    labels: validData.map(d => {
       const date = new Date(d.timestamp);
       return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit' });
     }),
     datasets: [
       {
-        label: 'Power Output (W)',
-        data: timeSeriesData.map(d => d.power),
+        label: `Power Output (${unit})`,
+        data: validData.map(d => (d.power || 0) * (isInKw ? scale : 1)),
         borderColor: '#3498db',
         backgroundColor: 'rgba(52, 152, 219, 0.1)',
         fill: true,
@@ -30,8 +65,8 @@ const PowerVsTimeChart = ({ timeSeriesData }) => {
         pointHoverRadius: 6
       },
       {
-        label: 'Max Power (W)',
-        data: timeSeriesData.map(d => d.maxPower),
+        label: `Max Power (${unit})`,
+        data: validData.map(d => (d.maxPower || 0) * (isInKw ? scale : 1)),
         borderColor: '#e74c3c',
         backgroundColor: 'rgba(231, 76, 60, 0.05)',
         borderDash: [5, 5],
@@ -98,7 +133,14 @@ const PowerVsTimeChart = ({ timeSeriesData }) => {
   };
 
   return (
-    <div style={{ height: '400px', padding: '20px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+    <div style={{ 
+      height: '400px', 
+      padding: '30px', 
+      backgroundColor: 'white', 
+      borderRadius: '16px', 
+      boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+      border: '1px solid #e9ecef'
+    }}>
       <Line data={data} options={options} />
     </div>
   );

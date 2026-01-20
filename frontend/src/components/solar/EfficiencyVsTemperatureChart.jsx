@@ -5,15 +5,46 @@ import { Scatter } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const EfficiencyVsTemperatureChart = ({ timeSeriesData }) => {
+  console.log('EfficiencyVsTemperatureChart received data:', timeSeriesData);
+  
   if (!timeSeriesData || timeSeriesData.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px', color: '#95a5a6' }}>
-        <p>No temperature-efficiency data available</p>
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '60px 40px',
+        background: '#f8f9fa',
+        borderRadius: '16px',
+        border: '1px solid #e9ecef'
+      }}>
+        <p style={{ color: '#7f8c8d', margin: 0 }}>No temperature-efficiency data available</p>
       </div>
     );
   }
 
-  const scatterData = timeSeriesData.map(d => ({
+  // Filter out data points with null/undefined values
+  const validData = timeSeriesData.filter(d => 
+    d && 
+    typeof d.temperature === 'number' && !isNaN(d.temperature) &&
+    typeof d.efficiency === 'number' && !isNaN(d.efficiency)
+  );
+
+  console.log('Valid data points:', validData.length, 'out of', timeSeriesData.length);
+
+  if (validData.length === 0) {
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '60px 40px',
+        background: '#f8f9fa',
+        borderRadius: '16px',
+        border: '1px solid #e9ecef'
+      }}>
+        <p style={{ color: '#7f8c8d', margin: 0 }}>No valid temperature-efficiency readings found</p>
+      </div>
+    );
+  }
+
+  const scatterData = validData.map(d => ({
     x: d.temperature,
     y: d.efficiency
   }));
@@ -92,7 +123,14 @@ const EfficiencyVsTemperatureChart = ({ timeSeriesData }) => {
   };
 
   return (
-    <div style={{ height: '400px', padding: '20px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+    <div style={{ 
+      height: '400px', 
+      padding: '30px', 
+      backgroundColor: 'white', 
+      borderRadius: '16px', 
+      boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+      border: '1px solid #e9ecef'
+    }}>
       <Scatter data={data} options={options} />
     </div>
   );
