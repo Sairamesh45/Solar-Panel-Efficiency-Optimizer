@@ -321,6 +321,219 @@ const InstallerDashboard = () => {
                 <div style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>Critical Issues</div>
               </div>
             </div>
+
+            {/* Performance Insights */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginBottom: '30px' }}>
+              {/* Fleet Health Summary */}
+              <div style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '30px',
+                borderRadius: '16px',
+                color: 'white',
+                boxShadow: '0 8px 24px rgba(102,126,234,0.25)'
+              }}>
+                <h3 style={{ margin: '0 0 25px 0', fontSize: '1.4rem', fontWeight: '600' }}>Fleet Health Analysis</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+                  <div style={{ 
+                    background: 'rgba(255,255,255,0.15)', 
+                    padding: '20px', 
+                    borderRadius: '12px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 'bold', marginBottom: '5px' }}>
+                      {stats.totalInstallations > 0 ? Math.round((stats.healthySystems / stats.totalInstallations) * 100) : 0}%
+                    </div>
+                    <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>Healthy Rate</div>
+                  </div>
+                  <div style={{ 
+                    background: 'rgba(255,255,255,0.15)', 
+                    padding: '20px', 
+                    borderRadius: '12px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 'bold', marginBottom: '5px' }}>
+                      {stats.criticalIssues + stats.needsAttention}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>Need Service</div>
+                  </div>
+                  <div style={{ 
+                    background: 'rgba(255,255,255,0.15)', 
+                    padding: '20px', 
+                    borderRadius: '12px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 'bold', marginBottom: '5px' }}>
+                      {stats.totalInstallations}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>Total Units</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div style={{ 
+                background: '#ffffff',
+                padding: '30px',
+                borderRadius: '16px',
+                border: '1px solid #e8ecf1',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.06)'
+              }}>
+                <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50', fontSize: '1.2rem' }}>Quick Actions</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <button
+                    onClick={() => setActiveSection('systems')}
+                    style={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      padding: '12px 16px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'transform 0.2s',
+                      boxShadow: '0 4px 12px rgba(102,126,234,0.3)'
+                    }}
+                    onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+                    onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+                  >
+                    <span>⚙️</span> View Systems
+                  </button>
+                  <button
+                    onClick={() => setActiveSection('maintenance')}
+                    style={{
+                      background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                      color: 'white',
+                      padding: '12px 16px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'transform 0.2s',
+                      boxShadow: '0 4px 12px rgba(245,87,108,0.3)'
+                    }}
+                    onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+                    onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+                  >
+                    <span>🔧</span> Maintenance
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Priority Alerts */}
+            {stats.criticalIssues > 0 && (
+              <div style={{
+                background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
+                padding: '25px',
+                borderRadius: '16px',
+                color: 'white',
+                marginBottom: '20px',
+                boxShadow: '0 8px 24px rgba(255,107,107,0.25)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div style={{ fontSize: '2.5rem' }}>⚠️</div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', fontWeight: '600' }}>Critical Systems Alert</h3>
+                    <p style={{ margin: 0, opacity: 0.95, fontSize: '0.95rem' }}>
+                      {stats.criticalIssues} system{stats.criticalIssues > 1 ? 's' : ''} require immediate attention. Please review and schedule maintenance.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setActiveSection('systems')}
+                    style={{
+                      background: 'rgba(255,255,255,0.25)',
+                      color: 'white',
+                      padding: '12px 24px',
+                      borderRadius: '8px',
+                      border: '2px solid rgba(255,255,255,0.5)',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.background = 'rgba(255,255,255,0.35)';
+                      e.target.style.borderColor = 'rgba(255,255,255,0.8)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.background = 'rgba(255,255,255,0.25)';
+                      e.target.style.borderColor = 'rgba(255,255,255,0.5)';
+                    }}
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Installation Summary */}
+            <div style={{
+              background: '#ffffff',
+              padding: '30px',
+              borderRadius: '16px',
+              border: '1px solid #e8ecf1',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.06)'
+            }}>
+              <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50', fontSize: '1.4rem' }}>System Distribution</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+                <div style={{ 
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
+                  borderRadius: '12px',
+                  borderLeft: '4px solid #27ae60'
+                }}>
+                  <div style={{ fontSize: '0.85rem', color: '#27ae60', marginBottom: '8px', textTransform: 'uppercase', fontWeight: '700' }}>
+                    Optimal Performance
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#27ae60', marginBottom: '5px' }}>
+                    {stats.healthySystems}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#2c3e50', opacity: 0.8 }}>
+                    Systems running smoothly
+                  </div>
+                </div>
+                <div style={{ 
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
+                  borderRadius: '12px',
+                  borderLeft: '4px solid #f39c12'
+                }}>
+                  <div style={{ fontSize: '0.85rem', color: '#f39c12', marginBottom: '8px', textTransform: 'uppercase', fontWeight: '700' }}>
+                    Needs Monitoring
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f39c12', marginBottom: '5px' }}>
+                    {stats.needsAttention}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#2c3e50', opacity: 0.8 }}>
+                    Require check-up soon
+                  </div>
+                </div>
+                <div style={{ 
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%)',
+                  borderRadius: '12px',
+                  borderLeft: '4px solid #e74c3c'
+                }}>
+                  <div style={{ fontSize: '0.85rem', color: '#e74c3c', marginBottom: '8px', textTransform: 'uppercase', fontWeight: '700' }}>
+                    Urgent Action
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#e74c3c', marginBottom: '5px' }}>
+                    {stats.criticalIssues}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#2c3e50', opacity: 0.8 }}>
+                    Immediate service needed
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
