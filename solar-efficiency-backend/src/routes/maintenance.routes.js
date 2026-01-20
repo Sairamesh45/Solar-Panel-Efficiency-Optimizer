@@ -12,6 +12,8 @@ router.get('/assigned', controller.getAssignedRequests); // Added route
 router.post('/handle', controller.handleRequest);
 // Assign installer to a maintenance request
 router.post('/assign', controller.assignInstaller);
+// Schedule appointment with specific date/time
+router.post('/schedule-appointment', controller.scheduleAppointment);
 // Update maintenance status (for installers)
 router.post('/update', controller.updateMaintenanceStatus);
 

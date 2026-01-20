@@ -11,6 +11,20 @@ exports.assignInstaller = async (req, res, next) => {
     next(error);
   }
 };
+
+// Schedule maintenance appointment with specific date/time
+exports.scheduleAppointment = async (req, res, next) => {
+  try {
+    const { id, scheduledDateTime, estimatedCompletionTime, notes } = req.body;
+    if (!id || !scheduledDateTime) {
+      return res.status(400).json({ success: false, message: 'Missing id or scheduledDateTime' });
+    }
+    const updated = await maintenanceService.scheduleAppointment(id, { scheduledDateTime, estimatedCompletionTime, notes });
+    res.status(200).json({ success: true, data: updated, message: 'Appointment scheduled successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
 const maintenanceService = require('../services/maintenance.service');
 
 exports.scheduleMaintenance = async (req, res, next) => {

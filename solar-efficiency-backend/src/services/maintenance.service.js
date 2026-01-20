@@ -7,6 +7,17 @@ exports.assignInstaller = async (id, installerId) => {
   );
 };
 
+// Schedule maintenance appointment with specific date/time
+exports.scheduleAppointment = async (id, { scheduledDateTime, estimatedCompletionTime, notes }) => {
+  const update = {};
+  if (scheduledDateTime) update.scheduledDateTime = scheduledDateTime;
+  if (estimatedCompletionTime) update.estimatedCompletionTime = estimatedCompletionTime;
+  if (notes) {
+    update.$push = { statusTimeline: { status: 'pending', timestamp: new Date(), notes } };
+  }
+  return Maintenance.findByIdAndUpdate(id, update, { new: true }).populate('panelId', 'name location');
+};
+
 // Installer updates status, notes, and photos
 exports.updateMaintenanceStatus = async (id, { status, notes, photos }) => {
   const update = { status };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { PRIORITY_COLORS } from '../../utils/constants';
 
-const MaintenanceAlert = ({ maintenance }) => {
+const MaintenanceAlert = ({ maintenance, maintenanceRequest, onAssign, onSchedule }) => {
   if (!maintenance) return null;
 
   const { alert, priority, recommended_actions } = maintenance;
@@ -138,6 +138,80 @@ const MaintenanceAlert = ({ maintenance }) => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Scheduling Information */}
+      {(maintenanceRequest?.scheduledDateTime || maintenanceRequest?.estimatedCompletionTime) && (
+        <div style={{
+          marginTop: '20px',
+          padding: '18px',
+          background: '#fef5e7',
+          borderRadius: '12px',
+          border: '1px solid #ffeaa7'
+        }}>
+          <h4 style={{ margin: '0 0 12px 0', color: '#f39c12', fontSize: '1rem', fontWeight: '700' }}>
+            📅 Schedule
+          </h4>
+          {maintenanceRequest.scheduledDateTime && (
+            <div style={{ marginBottom: '8px' }}>
+              <div style={{ fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '3px' }}>Appointment</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: '600', color: '#2c3e50' }}>
+                {new Date(maintenanceRequest.scheduledDateTime).toLocaleString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </div>
+            </div>
+          )}
+          {maintenanceRequest.estimatedCompletionTime && (
+            <div>
+              <div style={{ fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '3px' }}>Estimated Completion</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: '600', color: '#27ae60' }}>
+                {new Date(maintenanceRequest.estimatedCompletionTime).toLocaleString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      {(onAssign || onSchedule) && maintenanceRequest && (
+        <div style={{
+          marginTop: '20px',
+          display: 'flex',
+          gap: '12px',
+          flexWrap: 'wrap'
+        }}>
+          {onSchedule && (
+            <button
+              onClick={() => onSchedule(maintenanceRequest)}
+              style={{
+                padding: '12px 20px',
+                background: '#27ae60',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#229954'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#27ae60'}
+            >
+              {maintenanceRequest.scheduledDateTime ? '📅 Reschedule' : '📅 Schedule Appointment'}
+            </button>
+          )}
         </div>
       )}
     </div>

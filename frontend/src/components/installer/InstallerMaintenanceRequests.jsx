@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../api/axiosInstance';
+import ScheduleMaintenanceModal from '../customer/ScheduleMaintenanceModal';
 
 const InstallerMaintenanceRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updateMsg, setUpdateMsg] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   useEffect(() => {
     fetchRequests();
@@ -38,6 +41,47 @@ const InstallerMaintenanceRequests = () => {
               <p><strong>Requested:</strong> {new Date(req.createdAt).toLocaleString()}</p>
               <p><strong>Status:</strong> {req.status}</p>
               <p><strong>Notes:</strong> {req.notes || 'N/A'}</p>
+
+              {/* Scheduling Info */}
+              {(req.scheduledDateTime || req.estimatedCompletionTime) && (
+                <div style={{ marginTop: 12, padding: 12, background: '#fef5e7', borderRadius: 8, border: '1px solid #ffeaa7' }}>
+                  <h4 style={{ margin: '0 0 8px 0', color: '#f39c12', fontSize: 14 }}>📅 Schedule</h4>
+                  {req.scheduledDateTime && (
+                    <div style={{ fontSize: 13, marginBottom: 4 }}>
+                      <strong>Appointment:</strong> {new Date(req.scheduledDateTime).toLocaleString()}
+                    </div>
+                  )}
+                  {req.estimatedCompletionTime && (
+                    <div style={{ fontSize: 13 }}>
+                      <strong>ETA:</strong> {new Date(req.estimatedCompletionTime).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Action Buttons */}
+              {req.status !== 'completed' && (
+                <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => {
+                      setSelectedRequest(req);
+                      setShowScheduleModal(true);
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#27ae60',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: '600'
+                    }}
+                  >
+                    {req.scheduledDateTime ? '📅 Reschedule' : '📅 Schedule'}
+                  </button>
+                </div>
+              )}
               
               {/* Timeline */}
               {req.statusTimeline && req.statusTimeline.length > 0 && (
@@ -87,6 +131,24 @@ const InstallerMaintenanceRequests = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Modals */}
+      {showScheduleModal && selectedRequest && (
+        <ScheduleMaintenanceModal
+          maintenanceRequest={selectedRequest}
+          onClose={() => {
+            setShowScheduleModal(false);
+            setSelectedRequest(null);
+          }}
+          onSuccess={(updatedRequest) => {
+            setRequests(prev => prev.map(req => 
+              req._id === updatedRequest._id ? updatedRequest : req
+            ));
+            setUpdateMsg('Appointment scheduled successfully!');
+            setTimeout(() => setUpdateMsg(''), 2000);
+          }}
+        />
       )}
     </div>
   );

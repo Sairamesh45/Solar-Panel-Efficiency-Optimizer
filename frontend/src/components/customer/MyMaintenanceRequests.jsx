@@ -148,6 +148,52 @@ const MyMaintenanceRequests = ({ userId }) => {
                     <p style={{ margin: '8px 0 0 0', color: '#122436', fontSize: '0.95rem', lineHeight: '1.5' }}>{req.notes}</p>
                   </div>
                 )}
+
+                {/* Scheduled DateTime */}
+                {req.scheduledDateTime && (
+                  <div style={{ 
+                    padding: '14px', 
+                    background: '#fef5e7', 
+                    borderRadius: '10px', 
+                    borderLeft: '4px solid #f39c12' 
+                  }}>
+                    <label style={{ fontSize: '0.72rem', color: '#f39c12', fontWeight: '800', textTransform: 'uppercase' }}>
+                      Scheduled Appointment
+                    </label>
+                    <p style={{ margin: '8px 0 0 0', color: '#122436', fontSize: '0.98rem', fontWeight: '700' }}>
+                      {new Date(req.scheduledDateTime).toLocaleString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </p>
+                  </div>
+                )}
+
+                {/* Estimated Completion Time (ETA) */}
+                {req.estimatedCompletionTime && (
+                  <div style={{ 
+                    padding: '14px', 
+                    background: '#e8f5e9', 
+                    borderRadius: '10px', 
+                    borderLeft: '4px solid #27ae60' 
+                  }}>
+                    <label style={{ fontSize: '0.72rem', color: '#27ae60', fontWeight: '800', textTransform: 'uppercase' }}>
+                      Estimated Completion (ETA)
+                    </label>
+                    <p style={{ margin: '8px 0 0 0', color: '#122436', fontSize: '0.98rem', fontWeight: '700' }}>
+                      {new Date(req.estimatedCompletionTime).toLocaleString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {req.statusTimeline && req.statusTimeline.length > 0 && (

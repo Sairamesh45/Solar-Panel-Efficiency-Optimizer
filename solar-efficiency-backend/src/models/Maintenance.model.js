@@ -18,6 +18,10 @@ const MaintenanceSchema = new mongoose.Schema({
     }
   ],
   photos: [String], // URLs or file paths to uploaded photos
+  // Technician assignment & scheduling
+  scheduledDateTime: Date, // Specific date and time for the appointment
+  estimatedCompletionTime: Date, // Expected completion time (ETA)
+  actualCompletionTime: Date, // When it was actually completed
   createdAt: { type: Date, default: Date.now }
 });
 
