@@ -104,8 +104,11 @@ def detect_anomalies(sensor_data: List[Dict]) -> Dict:
     scaler = joblib.load(SCALER_PATH)
     feature_names = joblib.load(MODELS_DIR / "anomaly_features.pkl")
 
-    # Convert to DataFrame
-    df = pd.DataFrame(sensor_data)
+    # Convert to DataFrame - handle both single dict and list of dicts
+    if isinstance(sensor_data, dict):
+        df = pd.DataFrame([sensor_data])
+    else:
+        df = pd.DataFrame(sensor_data)
 
     # Extract features in correct order
     missing_features = [f for f in feature_names if f not in df.columns]

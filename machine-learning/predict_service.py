@@ -208,8 +208,9 @@ def predict_solar_output(input_data):
             tilt_efficiency * azimuth_efficiency * age_factor * cleaning_factor
         )
 
-        # Daily and annual estimates (scale the hourly prediction)
-        daily_energy_kwh = energy_kwh * peak_sun_hours * combined_efficiency
+        # Daily and annual estimates
+        # Use system capacity with peak sun hours and efficiency factors
+        daily_energy_kwh = system_capacity * peak_sun_hours * combined_efficiency
         annual_energy_kwh = daily_energy_kwh * 365
 
         # Efficiency calculation based on theoretical maximum
@@ -254,13 +255,13 @@ def predict_solar_output(input_data):
                 },
                 "financial": {
                     "annual_savings_inr": round(
-                        annual_energy_kwh * 6.5, 0
-                    ),  # ₹6.5/kWh average tariff
-                    "monthly_savings_inr": round((annual_energy_kwh * 6.5) / 12, 0),
+                        annual_energy_kwh * 8.5, 0
+                    ),  # ₹8.5/kWh average residential tariff in India
+                    "monthly_savings_inr": round((annual_energy_kwh * 8.5) / 12, 0),
                     "25_year_savings_inr": round(
-                        annual_energy_kwh * 6.5 * 25 * 0.95, 0
+                        annual_energy_kwh * 8.5 * 25 * 0.95, 0
                     ),  # 5% discount for degradation
-                    "cost_per_kwh": 6.5,
+                    "cost_per_kwh": 8.5,
                 },
             },
             "model_info": {

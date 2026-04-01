@@ -223,7 +223,7 @@ function getFallbackMLResponse(payload) {
       tilt: parseFloat(tiltLoss.toFixed(1))
     },
     maintenance_alert: maintenanceAlert,
-    estimated_savings_per_year: parseFloat((annualGeneration * 6.5).toFixed(0)),
+    estimated_savings_per_year: parseFloat((annualGeneration * 8.5).toFixed(0)),
     ml_model_info: { 
       model_name: "Fallback Model", 
       note: "ML service unavailable - using simplified calculations",

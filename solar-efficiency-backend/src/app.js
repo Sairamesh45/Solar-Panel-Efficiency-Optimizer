@@ -34,6 +34,7 @@ app.use('/api/weather', require('./routes/weather.routes'));
 app.use('/api/recurring-maintenance', require('./routes/recurringMaintenance.routes'));
 app.use('/api/parts-catalog', require('./routes/partsCatalog.routes'));
 app.use('/api/analysis-history', require('./routes/analysisHistory.routes'));
+app.use('/api/analytics', require('./routes/analytics.routes'));
 
 // Error Handler
 app.use(errorHandler);

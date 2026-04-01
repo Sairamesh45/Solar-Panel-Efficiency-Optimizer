@@ -168,8 +168,11 @@ def predict_maintenance_need(panel_data: List[Dict]) -> Dict:
     scaler = joblib.load(MAINTENANCE_SCALER_PATH)
     feature_names = joblib.load(MODELS_DIR / "maintenance_features.pkl")
 
-    # Convert to DataFrame
-    df = pd.DataFrame(panel_data)
+    # Convert to DataFrame - handle both single dict and list of dicts
+    if isinstance(panel_data, dict):
+        df = pd.DataFrame([panel_data])
+    else:
+        df = pd.DataFrame(panel_data)
 
     # Check for required features
     missing_features = [f for f in feature_names if f not in df.columns]

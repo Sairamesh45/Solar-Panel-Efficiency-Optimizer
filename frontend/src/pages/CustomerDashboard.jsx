@@ -19,6 +19,9 @@ import WeatherForecast from '../components/solar/WeatherForecast';
 import axiosInstance from '../api/axiosInstance';
 import { getUserAlerts, resolveAlert, deleteAlert } from '../api/alert.api';
 import { AlertCircle, AlertTriangle, Info, CheckCircle, Trash2, RefreshCw } from 'lucide-react';
+import { generateAnalytics, getCumulativeAnalytics } from '../api/analytics.api';
+import CostSavingsCard from '../components/common/CostSavingsCard';
+import CarbonFootprintCard from '../components/common/CarbonFootprintCard';
 
 // Alerts Section Component
 const AlertsSection = ({ userId }) => {
@@ -497,6 +500,7 @@ const CustomerDashboard = () => {
           {[
             { id: 'overview', icon: '📊', label: 'Overview' },
             { id: 'panels', icon: '☀️', label: 'My Panels' },
+            { id: 'analytics', icon: '💰', label: 'Analytics & Reports' },
             { id: 'panelRequests', icon: '📋', label: 'Panel Requests' },
             { id: 'maintenance', icon: '🔧', label: 'Maintenance' },
             { id: 'recurring', icon: '🔄', label: 'Recurring Schedules' },
@@ -756,9 +760,9 @@ const CustomerDashboard = () => {
                             }
                             
                             if (!netCost || netCost === 0 || yearlySavings === 0) return 'N/A';
-                            // ROI for 10 years = (10 year savings - Cost) / Cost * 100
+                            // ROI = (Total Savings / Investment) * 100
                             const tenYearSavings = yearlySavings * 10;
-                            const roi = ((tenYearSavings - netCost) / netCost) * 100;
+                            const roi = (tenYearSavings / netCost) * 100;
                             return roi.toFixed(0);
                           })()}%
                         </div>
@@ -954,6 +958,14 @@ const CustomerDashboard = () => {
             </div>
           )}
 
+          {/* Analytics Section */}
+          {activeSection === 'analytics' && (
+            <div style={{ padding: '20px' }}>
+              <h2 style={{ fontSize: '2rem', color: '#2c3e50', marginBottom: '20px' }}>💰 Analytics & Reports</h2>
+              <AnalyticsSection userId={user?._id} panels={panels} />
+            </div>
+          )}
+
           {/* Panel Requests Section */}
           {activeSection === 'panelRequests' && (
             <div style={{ 
@@ -1125,6 +1137,342 @@ const CustomerDashboard = () => {
           {panelMsg && <div style={{position:'fixed',top:20,right:20,zIndex:1000,background:'#3498db',color:'#fff',padding:'15px 25px',borderRadius:8,fontWeight:'bold',boxShadow:'0 4px 12px rgba(0,0,0,0.15)'}}>{panelMsg}</div>}
         </div>
       </div>
+  );
+};
+
+// Analytics Section Component
+const AnalyticsSection = ({ userId, panels }) => {
+  const [selectedPanel, setSelectedPanel] = useState('');
+  const [analytics, setAnalytics] = useState(null);
+  const [cumulative, setCumulative] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0]
+  });
+  const [systemCost, setSystemCost] = useState('');
+  const [electricityTariff, setElectricityTariff] = useState('6.5');
+
+  useEffect(() => {
+    if (panels.length > 0 && !selectedPanel) {
+      setSelectedPanel(panels[0]._id);
+    }
+  }, [panels]);
+
+  useEffect(() => {
+    if (selectedPanel) {
+      fetchAnalytics();
+      fetchCumulativeAnalytics();
+    }
+  }, [selectedPanel, dateRange]);
+
+  const fetchAnalytics = async () => {
+    if (!selectedPanel) return;
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const response = await generateAnalytics({
+        panelId: selectedPanel,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        systemCost: systemCost || 0,
+        electricityTariff: electricityTariff || 6.5
+      });
+
+      if (response.success) {
+        setAnalytics(response.data);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching analytics:', err);
+      setError(err.response?.data?.message || 'Failed to load analytics');
+      setLoading(false);
+    }
+  };
+
+  const fetchCumulativeAnalytics = async () => {
+    try {
+      const response = await getCumulativeAnalytics(selectedPanel || null);
+      if (response.success) {
+        setCumulative(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching cumulative analytics:', err);
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchAnalytics();
+    fetchCumulativeAnalytics();
+  };
+
+  if (panels.length === 0) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center', background: '#f8f9fa', borderRadius: '8px' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '10px' }}>📊</div>
+        <p style={{ color: '#7f8c8d', margin: 0 }}>No panels available. Add a panel to view analytics.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Controls */}
+      <div style={{
+        background: 'white',
+        padding: '20px',
+        borderRadius: '12px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        marginBottom: '20px'
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+          alignItems: 'end'
+        }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              Select Panel
+            </label>
+            <select
+              value={selectedPanel}
+              onChange={(e) => setSelectedPanel(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            >
+              {panels.map(panel => (
+                <option key={panel._id} value={panel._id}>
+                  {panel.name} - {panel.location}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              Start Date
+            </label>
+            <input
+              type="date"
+              value={dateRange.startDate}
+              onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
+              max={dateRange.endDate}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              End Date
+            </label>
+            <input
+              type="date"
+              value={dateRange.endDate}
+              onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
+              min={dateRange.startDate}
+              max={new Date().toISOString().split('T')[0]}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              System Cost (₹)
+            </label>
+            <input
+              type="number"
+              value={systemCost}
+              onChange={(e) => setSystemCost(e.target.value)}
+              placeholder="Optional"
+              min="0"
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              Tariff (₹/kWh)
+            </label>
+            <input
+              type="number"
+              value={electricityTariff}
+              onChange={(e) => setElectricityTariff(e.target.value)}
+              placeholder="6.5"
+              step="0.1"
+              min="0"
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              &nbsp;
+            </label>
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '10px 20px',
+                background: '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1
+              }}
+            >
+              {loading ? '🔄 Loading...' : '🔄 Refresh'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '16px',
+          background: '#fef2f2',
+          borderLeft: '4px solid #ef4444',
+          borderRadius: '6px',
+          color: '#991b1b',
+          marginBottom: '24px',
+          fontSize: '14px'
+        }}>
+          <span>⚠️</span>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Cumulative Stats */}
+      {cumulative && (
+        <div style={{
+          background: 'white',
+          padding: '24px',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          marginBottom: '24px'
+        }}>
+          <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', color: '#1f2937', fontWeight: '600' }}>
+            All-Time Statistics
+          </h3>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '20px'
+          }}>
+            <div style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
+              border: '1px solid #e5e7eb',
+              borderTop: '4px solid #fbbf24',
+              borderRadius: '10px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚡</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>
+                {cumulative.totalEnergyProduced?.toFixed(2) || '0'} kWh
+              </div>
+              <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>Total Energy</div>
+            </div>
+
+            <div style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
+              border: '1px solid #e5e7eb',
+              borderTop: '4px solid #10b981',
+              borderRadius: '10px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '36px', marginBottom: '12px' }}>💰</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>
+                ₹{cumulative.totalSavings?.toLocaleString() || '0'}
+              </div>
+              <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>Total Savings</div>
+            </div>
+
+            <div style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
+              border: '1px solid #e5e7eb',
+              borderTop: '4px solid #059669',
+              borderRadius: '10px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '36px', marginBottom: '12px' }}>🌍</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>
+                {cumulative.totalCO2Avoided?.toFixed(2) || '0'} kg
+              </div>
+              <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>CO₂ Avoided</div>
+            </div>
+
+            <div style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
+              border: '1px solid #e5e7eb',
+              borderTop: '4px solid #2563eb',
+              borderRadius: '10px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '36px', marginBottom: '12px' }}>📊</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>
+                {cumulative.averageROI?.toFixed(2) || '0'}%
+              </div>
+              <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>Average ROI</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analytics Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+        gap: '24px',
+        marginBottom: '24px'
+      }}>
+        <CostSavingsCard data={analytics} loading={loading} />
+        <CarbonFootprintCard data={analytics} loading={loading} />
+      </div>
+    </div>
   );
 };
 
